@@ -1,14 +1,5 @@
 
 
-/********************************************************
- * Constantes
- ********************************************************/
-#define TEMPO_CYCLE   60      // unite : second
-#define TEMPO_VENTILO 50
-#define TEMPO_MOTEUR   10
-
-#define TEMPERATURE_DEMARRAGE  25
-#define TEMPERATURE_ARRET      33
 
 /********************************************************
  * Brochage carte
