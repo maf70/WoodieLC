@@ -9,7 +9,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
 #include "moteur.h"
-#include "DS1307.h"
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -37,5 +36,6 @@ MAX6675 temp(SONDEK_CS,SONDEK_SO,SONDEK_SCK,SONDEK_UNIT);
 unsigned long t_loop_debut = 0;
 unsigned long t_loop_fin = 0;
 unsigned long t_loop_delai = 0;
+
 
 

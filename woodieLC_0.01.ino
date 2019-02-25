@@ -7,7 +7,6 @@
 long temperature_eau = -300;  // Temperature output variable
 long temperature_K   = -300;  // Temperature output variable
 
-DateTime_t now;
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
 actionneur Ventilo(RELAIS_VENTILO);
 
@@ -95,22 +94,6 @@ void setup() {
     Serial.println(ARDUINO);
     Serial.println(ARDUINO);
 
-/*    Vérifie si le module RTC est initialisé */
-  if (read_current_datetime(&now)) 
-  {
-    Serial.println(F("Mise à l'heure"));
-    
-    // Reconfiguration avec une date et heure en dur (pour l'exemple)
-    now.seconds = 0;
-    now.minutes = 12;
-    now.hours = 21; // 12h 0min 0sec
-    now.is_pm = 0; 
-    now.day_of_week = 2;
-    now.days = 6; 
-    now.months = 11;
-    now.year = 18; // 1 dec 2016
-    adjust_current_datetime(&now);
-  }
   v = 0;
   mesure_timings("RTC init : ");
   
@@ -152,15 +135,6 @@ void loop() {
   digitalWrite(LED_BUILTIN, v & 0x01); 
   delay(10);
   
-  /* Lit la date et heure courante */
-  if (read_current_datetime(&now)) {
-    Serial.println(F("L'horloge du module RTC n'est pas active !"));
-  }
-  else {
-    Serial.println(F("L'horloge du module RTC OK!"));
-  }
-  mesure_timings("date lue : ");
-  
   //display.clearDisplay();
   //display.setCursor(0, 0);     // Start at top-left corner
   //display.print(F("A"));
@@ -187,17 +161,10 @@ void loop() {
   
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
-  
-  display.print(now.days);
-  display.print(F("/"));
-  display.print(now.months);
-  display.print(F(" "));
-  display.print(now.hours);
-  display.print(F(":"));
-  display.println(now.minutes);
      display.print(temperature_eau);
      display.print(F(" "));
      display.println(temperature_K);
+
 /*  for(int16_t i=0; i<t; i++) {
     if(i == '\n') display.write(' ');
     else          display.write(i+32);
