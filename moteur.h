@@ -5,6 +5,7 @@ class actionneur  {
   public:
   actionneur(int p);
   void demarre(long d );
+  void pause(int p);
   void arret();
   void tic(int t);
   
@@ -20,6 +21,9 @@ class moteur : public actionneur {
 
   private:
   int pin_inverse;
+  int etat;
+  int nb_blocage;
 };
 
 #endif
+

@@ -21,9 +21,19 @@ void actionneur::demarre(long d){
   duree = d;
   }
 
+void actionneur::pause(int p){
+  if(p)
+  {
+  digitalWrite(pin, HIGH);
+  }
+  else
+  {
+  digitalWrite(pin, LOW);
+  }
+}
+
 void actionneur::arret(){
   digitalWrite(pin, HIGH); 
-  
   }
 
 void actionneur::tic(int t){
@@ -43,6 +53,8 @@ void actionneur::tic(int t){
 
 moteur::moteur(int p, int pi) : actionneur (p) {
   pin_inverse=pi;
+  etat=0;
+  nb_blocage=0;
   pinMode(pin_inverse, OUTPUT);
   digitalWrite(pin_inverse, HIGH); 
   }
@@ -57,7 +69,12 @@ void moteur::tic(int t, int cpt){
     duree = 0;
   }
 
-  if (duree == 0) digitalWrite(pin, HIGH);
+  if (duree == 0) 
+  {
+    digitalWrite(pin, HIGH);
+    etat = 0;
+  }
   
 }
+
 
