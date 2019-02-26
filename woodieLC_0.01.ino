@@ -126,6 +126,7 @@ void loop() {
   display.println(temperature_eau);
   display.println(temperature_K);
   display.println(OpticCount);
+  display.println(total_s++);
   display.display();
 
   //mesure_timings("lcd refresh : ");
