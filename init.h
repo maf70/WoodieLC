@@ -13,6 +13,7 @@ moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
 actionneur Ventilo(RELAIS_VENTILO);
 
 int OpticCount = 0;
+unsigned long OpticStamp =0;
 
 long t=0;
 int led=0;  // clignotement led
@@ -36,12 +37,9 @@ DallasTemperature sensors(&oneWire);
 // initialize the Thermocouple
 //Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 // Initialize the MAX6675 Library for our chip
-MAX6675 temp(SONDEK_CS,SONDEK_SO,SONDEK_SCK,SONDEK_UNIT);
+MAX6675 temp(SONDEK_CS,SONDEK_SO,SONDEK_SCK /*,SONDEK_UNIT*/);
 
 // Variables pour compenser le temps de cycle
 unsigned long t_loop_debut = 0;
 unsigned long t_loop_fin = 0;
 unsigned long t_loop_delai = 0;
-
-
-

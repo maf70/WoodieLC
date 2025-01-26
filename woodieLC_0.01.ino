@@ -2,22 +2,16 @@
 
 
 
-/********************************************************
- * Constantes
- ********************************************************/
-#define TEMPO_CYCLE   60      // unite : second
-#define TEMPO_VENTILO 50
-#define TEMPO_MOTEUR   10
-
-#define TEMPERATURE_DEMARRAGE  25
-#define TEMPERATURE_ARRET      33
-
 #include "reglages.h"
 #include "init.h"
 
 void interruptC1()
 {
-  OpticCount += 1 ;
+  if ( (millis() - OpticStamp) > 20 )
+  {
+    OpticCount += 1 ;
+    OpticStamp = millis();
+  }
 }
 
 void setup() {
@@ -80,11 +74,12 @@ void loop() {
   // You can have more than one IC on the same bus. 
   // 0 refers to the first IC on the wire
   temperature_eau = (int)sensors.getTempCByIndex(0);
+  Serial.print (temperature_eau);
 
   // Read thermocouple K
   // Read the temp from the MAX6675
-  temperature_K = (int)temp.read_temp();
-  mesure_timings("max6675 lue : ");
+  //temperature_K = (int)temp.read_temp();
+  //mesure_timings("max6675 lue : ");
   
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
@@ -124,8 +119,10 @@ void loop() {
  // mesure_timings("Gestion chaudiere : ");
  
   display.println(temperature_eau);
-  display.println(temperature_K);
-  display.println(OpticCount);
+  //display.println(temperature_K);
+  display.print(OpticCount);
+  display.print(" ");
+  display.println(MoteurVis.getNB());
   display.println(total_s++);
   display.display();
 
@@ -136,7 +133,7 @@ void loop() {
   t_loop_fin = millis();
   t_loop_delai = t_loop_fin - t_loop_debut;
 
-  if (t_loop_delai >= 1000) t_loop_delai = 900;
+  //if (t_loop_delai >= 1000) t_loop_delai = 900;
   
   /* Rafraichissement une fois par seconde */ 
   delay(1000-t_loop_delai); 
@@ -148,5 +145,3 @@ void loop() {
   }
   
 }
-
-

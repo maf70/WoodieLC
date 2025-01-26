@@ -1,13 +1,28 @@
 
 
+/********************************************************
+ * Constantes
+ ********************************************************/
+
+#define TEMPERATURE_DEMARRAGE  30
+#define TEMPERATURE_ARRET      35
+
+#define TEMPO_CYCLE   60      // unite : second
+#define TEMPO_VENTILO 50
+#define TEMPO_MOTEUR   10
+
+#define MOTEUR_DELAI_INVERSION   2
+#define MOTEUR_DUREE_INVERSION   2
+#define MOTEUR_VITESSE_MIN       2
+
 
 /********************************************************
  * Brochage carte
  ********************************************************/
 
-#define RELAIS_MOTEUR     7
-#define RELAIS_MOTEUR_INV 8
-#define RELAIS_VENTILO    9
+#define RELAIS_MOTEUR     8
+#define RELAIS_MOTEUR_INV 9
+#define RELAIS_VENTILO    7
 
 #define D220_SECTEUR  5
 #define D220_SECURITE 6
@@ -31,4 +46,3 @@
 
 // Data wire is plugged into pin D4 on the Arduino
 #define ONE_WIRE_BUS 4
-
