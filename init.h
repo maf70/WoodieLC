@@ -1,13 +1,13 @@
 
 /* Dépendances */
-#include <SPI.h>
+//#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 
 #include "moteur.h"
 
 long temperature_eau = -300;  // Temperature output variable
-long temperature_K   = -300;  // Temperature output variable
+//long temperature_K   = -300;  // Temperature output variable
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
 actionneur Ventilo(RELAIS_VENTILO);
@@ -23,7 +23,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <MAX6675.h>
+//#include <MAX6675.h>
 
 #include "debug.h"
 
@@ -37,7 +37,7 @@ DallasTemperature sensors(&oneWire);
 // initialize the Thermocouple
 //Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 // Initialize the MAX6675 Library for our chip
-MAX6675 temp(SONDEK_CS,SONDEK_SO,SONDEK_SCK /*,SONDEK_UNIT*/);
+//MAX6675 temp(SONDEK_CS,SONDEK_SO,SONDEK_SCK /*,SONDEK_UNIT*/);
 
 // Variables pour compenser le temps de cycle
 unsigned long t_loop_debut = 0;
