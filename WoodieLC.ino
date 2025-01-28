@@ -55,6 +55,8 @@ void setup() {
   display.display();
 }
 
+int blocage = 0;
+
 void loop() {
   t_loop_debut = millis();
   
@@ -85,50 +87,68 @@ void loop() {
   // Library will draw what it can and the rest will be clipped.
   
    if ( t == 0 ){
-    if (etat == 0){   // REPOS
+    if (etat == ETAT_REPOS){   // REPOS
      if (temperature_eau <= TEMPERATURE_DEMARRAGE) {
       MoteurVis.demarre(TEMPO_MOTEUR);
       Ventilo.demarre(TEMPO_VENTILO);
-      etat = 1;
+      etat = ETAT_CHAUFFE;
      }
     }
-   else {
-      if (etat == 1) { // CHAUFFE
-        if (temperature_eau <= TEMPERATURE_ARRET) {
-          MoteurVis.demarre(TEMPO_MOTEUR);
-          Ventilo.demarre(TEMPO_VENTILO);
-        }
-        else {
-          etat = 0;
-        }
+    else {
+     if (etat == ETAT_CHAUFFE) { // CHAUFFE
+       if (temperature_eau <= TEMPERATURE_ARRET) {
+         MoteurVis.demarre(TEMPO_MOTEUR);
+         Ventilo.demarre(TEMPO_VENTILO);
+       }
+       else {
+         etat = ETAT_REPOS;
+       }
         
-      }
+     }
 //  mesure_timings("CHAUFFE : ");
 
     }
    }
-   if ( t > 0 && etat == 0){
+   
+   if ( t > 0 && etat == ETAT_REPOS){
     if (temperature_eau <= TEMPERATURE_DEMARRAGE) {
       t = -1;  // Nouveau cycle a la prochaine boucle
-      etat = 0;
+      etat = ETAT_REPOS;
     }
   }
   
-  Ventilo.tic(1);
-  MoteurVis.tic(1, OpticCount);
- // mesure_timings("Gestion chaudiere : ");
- 
   display.println(temperature_eau);
   //display.println(temperature_K);
   display.print(OpticCount);
   display.print(" ");
-  display.println(MoteurVis.getNB());
+  blocage = MoteurVis.getNB();
+  display.println(blocage);
   display.println(total_s++);
-  display.display();
 
+  if (blocage >= MOTEUR_BLOCAGE_MAX) {
+    etat = ETAT_BLOCAGE;
+  }
+
+  if (etat == ETAT_BLOCAGE){
+    Ventilo.arret();
+    MoteurVis.arret();
+    display.print("BLOCAGE ");
+    display.print(t);
+  }
+  else {
+    Ventilo.tic(1);
+    MoteurVis.tic(1, OpticCount);
+
+    t += 1;
+    if (t >= TEMPO_CYCLE ) {
+      t = 0; 
+    }
+  }
+ // mesure_timings("Gestion chaudiere : ");
   //mesure_timings("lcd refresh : ");
 
   OpticCount = 0;
+  display.display();
   
   t_loop_fin = millis();
   t_loop_delai = t_loop_fin - t_loop_debut;
@@ -137,11 +157,5 @@ void loop() {
   
   /* Rafraichissement une fois par seconde */ 
   delay(1000-t_loop_delai); 
-
-  t += 1;
-
-  if (t >= TEMPO_CYCLE ) {
-    t = 0; 
-  }
   
 }

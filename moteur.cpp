@@ -99,6 +99,8 @@ void moteur::arret(){
 void moteur::tic(int t, int cpt){
 
   switch ( etat ) {
+    case 0 :     // Arret
+      break;
     case 1 :     // demarrage au prochain tic
       etat = 2;  
       break;
@@ -162,7 +164,6 @@ void moteur::tic(int t, int cpt){
       if (--tempo <= 0)
       {
         etat = 3;
-        tempo = MOTEUR_DUREE_INVERSION;
         digitalWrite(pin_inverse, HIGH); 
         digitalWrite(pin, LOW); 
       }

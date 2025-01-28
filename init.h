@@ -17,7 +17,7 @@ unsigned long OpticStamp =0;
 
 long t=0;
 int led=0;  // clignotement led
-int etat = 0;   //etat repos
+int etat = ETAT_REPOS;   //etat repos
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 

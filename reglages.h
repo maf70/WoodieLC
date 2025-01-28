@@ -14,7 +14,17 @@
 #define MOTEUR_DELAI_INVERSION   2
 #define MOTEUR_DUREE_INVERSION   2
 #define MOTEUR_VITESSE_MIN       2
+#define MOTEUR_BLOCAGE_MAX       3
 
+
+/********************************************************
+ * Defines
+ ********************************************************/
+
+#define ETAT_REPOS 0
+#define ETAT_CHAUFFE 1
+#define ETAT_BLOCAGE 2
+#define ETAT_REGLAGE 3
 
 /********************************************************
  * Brochage carte
