@@ -13,7 +13,7 @@
 
 #define MOTEUR_DELAI_INVERSION   2
 #define MOTEUR_DUREE_INVERSION   2
-#define MOTEUR_VITESSE_MIN       2
+#define MOTEUR_VITESSE_MIN       5
 #define MOTEUR_BLOCAGE_MAX       3
 
 

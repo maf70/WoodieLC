@@ -96,6 +96,12 @@ void moteur::arret(){
   }
 
 
+void moteur::parametres(int delai, int duree, int vmin){
+  moteur_delai_inversion = delai;
+  moteur_duree_inversion = duree;
+  moteur_vitesse_min = vmin;
+  }
+  
 void moteur::tic(int t, int cpt){
 
   switch ( etat ) {
@@ -126,12 +132,12 @@ void moteur::tic(int t, int cpt){
         digitalWrite(pin_inverse, HIGH);
         etat = 0;
       }
-      else if (cpt < MOTEUR_VITESSE_MIN)
+      else if (cpt < moteur_vitesse_min)
       {
         // Blocage !
         nb_blocage++;
         etat = 4;
-        tempo = MOTEUR_DELAI_INVERSION;
+        tempo = moteur_delai_inversion;
         digitalWrite(pin_inverse, HIGH); 
         digitalWrite(pin, HIGH); 
       }
@@ -140,13 +146,13 @@ void moteur::tic(int t, int cpt){
       if (--tempo <= 0)
       {
         etat = 5;
-        tempo = MOTEUR_DUREE_INVERSION;
+        tempo = moteur_duree_inversion;
         digitalWrite(pin, HIGH); 
         digitalWrite(pin_inverse, LOW); 
       }
       break;
     case 5 :    // inversion
-      if (cpt < MOTEUR_VITESSE_MIN)
+      if (cpt < moteur_vitesse_min)
       {
         // Blocage !
         nb_blocage++;
@@ -155,7 +161,7 @@ void moteur::tic(int t, int cpt){
       if (--tempo <= 0)
       {
         etat = 6;
-        tempo = MOTEUR_DELAI_INVERSION;
+        tempo = moteur_delai_inversion;
         digitalWrite(pin_inverse, HIGH); 
         digitalWrite(pin, HIGH); 
       }

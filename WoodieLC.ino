@@ -5,6 +5,19 @@
 #include "reglages.h"
 #include "init.h"
 
+int temperature_demarrage = TEMPERATURE_DEMARRAGE;
+int temperature_arret     = TEMPERATURE_ARRET;
+
+int tempo_cycle   = TEMPO_CYCLE;
+int tempo_ventilo = TEMPO_VENTILO;
+int tempo_moteur  = TEMPO_MOTEUR;
+
+int moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
+int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
+int moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
+int moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
+
+
 void interruptC1()
 {
   if ( (millis() - OpticStamp) > 20 )
@@ -53,6 +66,10 @@ void setup() {
 
   display.clearDisplay();
   display.display();
+
+  
+  MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
+
 }
 
 int blocage = 0;
@@ -88,17 +105,17 @@ void loop() {
   
    if ( t == 0 ){
     if (etat == ETAT_REPOS){   // REPOS
-     if (temperature_eau <= TEMPERATURE_DEMARRAGE) {
-      MoteurVis.demarre(TEMPO_MOTEUR);
-      Ventilo.demarre(TEMPO_VENTILO);
+     if (temperature_eau <= temperature_demarrage) {
+      MoteurVis.demarre(tempo_moteur);
+      Ventilo.demarre(tempo_ventilo);
       etat = ETAT_CHAUFFE;
      }
     }
     else {
      if (etat == ETAT_CHAUFFE) { // CHAUFFE
-       if (temperature_eau <= TEMPERATURE_ARRET) {
-         MoteurVis.demarre(TEMPO_MOTEUR);
-         Ventilo.demarre(TEMPO_VENTILO);
+       if (temperature_eau <= temperature_arret) {
+         MoteurVis.demarre(tempo_moteur);
+         Ventilo.demarre(tempo_ventilo);
        }
        else {
          etat = ETAT_REPOS;
@@ -111,7 +128,7 @@ void loop() {
    }
    
    if ( t > 0 && etat == ETAT_REPOS){
-    if (temperature_eau <= TEMPERATURE_DEMARRAGE) {
+    if (temperature_eau <= temperature_demarrage) {
       t = -1;  // Nouveau cycle a la prochaine boucle
       etat = ETAT_REPOS;
     }
@@ -125,7 +142,7 @@ void loop() {
   display.println(blocage);
   display.println(total_s++);
 
-  if (blocage >= MOTEUR_BLOCAGE_MAX) {
+  if (blocage >= moteur_blocage_max) {
     etat = ETAT_BLOCAGE;
   }
 
@@ -140,7 +157,7 @@ void loop() {
     MoteurVis.tic(1, OpticCount);
 
     t += 1;
-    if (t >= TEMPO_CYCLE ) {
+    if (t >= tempo_cycle ) {
       t = 0; 
     }
   }
