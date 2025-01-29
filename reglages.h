@@ -44,6 +44,10 @@
 #define SONDEK_SCK  12           // SCK pin of MAX6675
 #define SONDEK_UNIT  1           // Units to readout temp (0 = raw, 1 = ˚C, 2 = ˚F)
 
+#define B_MENU    A0        // S1
+#define B_OK      A1        // S2
+#define B_UP      A3        // S4
+#define B_DOWN    A2        // S3
 
 #define I2C_EXT_EEPROM 0x50
 #define I2C_EXT_SIZE   32768

@@ -62,6 +62,11 @@ void setup() {
   attachInterrupt(0, interruptC1, FALLING);
   mesure_timings("interruption : ");
   
+  pinMode(B_MENU, INPUT_PULLUP);
+  pinMode(B_OK,   INPUT_PULLUP);
+  pinMode(B_UP,   INPUT_PULLUP);
+  pinMode(B_DOWN, INPUT_PULLUP);
+
   mesure_timings("fin init : ");
 
   display.clearDisplay();
@@ -141,6 +146,7 @@ void loop() {
   blocage = MoteurVis.getNB();
   display.println(blocage);
   display.println(total_s++);
+
 
   if (blocage >= moteur_blocage_max) {
     etat = ETAT_BLOCAGE;
