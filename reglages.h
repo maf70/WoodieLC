@@ -5,7 +5,7 @@
  ********************************************************/
 
 #define TEMPERATURE_DEMARRAGE  30
-#define TEMPERATURE_ARRET      35
+#define TEMPERATURE_ARRET      33
 
 #define TEMPO_CYCLE   60      // unite : second
 #define TEMPO_VENTILO 50
