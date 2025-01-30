@@ -22,6 +22,7 @@ class moteur : public actionneur {
   void demarre(long d );
   void pause(int p);
   void arret();
+  void debloque();
   void parametres(int delai, int duree, int vmin);
   void tic(int t, int cpt);
   int getNB() {return nb_blocage;};

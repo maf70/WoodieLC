@@ -21,10 +21,11 @@
  * Defines
  ********************************************************/
 
-#define ETAT_REPOS 0
+#define ETAT_REPOS   0
 #define ETAT_CHAUFFE 1
 #define ETAT_BLOCAGE 2
-#define ETAT_REGLAGE 3
+#define ETAT_ARRET   3
+#define ETAT_REGLAGE 4
 
 /********************************************************
  * Brochage carte

@@ -95,6 +95,10 @@ void moteur::arret(){
   etat = 0;
   }
 
+void moteur::debloque(){
+  nb_blocage = 0;
+  }
+
 
 void moteur::parametres(int delai, int duree, int vmin){
   moteur_delai_inversion = delai;

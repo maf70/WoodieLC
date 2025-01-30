@@ -17,6 +17,15 @@ int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 int moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 int moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
+int BOK_cpt   = 0;
+int BMENU_cpt = 0;
+int BUP_cpt   = 0;
+int BDOWN_cpt = 0;
+
+int BOK_st   = 0;
+int BMENU_st = 0;
+int BUP_st   = 0;
+int BDOWN_st = 0;
 
 void interruptC1()
 {
@@ -26,6 +35,50 @@ void interruptC1()
     OpticStamp = millis();
   }
 }
+
+ISR( TIMER2_OVF_vect )
+{
+  if ( BMENU_st + BOK_st + BUP_st + BDOWN_st < 1) {
+
+    if (digitalRead(B_MENU) == 0)
+    {
+      if( ++BMENU_cpt > 10) { BMENU_st = 1; BMENU_cpt = 0;}
+      BOK_cpt   = 0;
+      BUP_cpt   = 0;
+      BDOWN_cpt = 0;
+    }
+    else if (digitalRead(B_OK) == 0)
+    {
+      BMENU_cpt = 0;
+      if( ++BOK_cpt > 10) { BOK_st = 1; BOK_cpt = 0;}
+      BUP_cpt   = 0;
+      BDOWN_cpt = 0;
+    }
+    else if (digitalRead(B_UP) == 0)
+    {
+      BMENU_cpt = 0;
+      BOK_cpt   = 0;
+      if( ++BUP_cpt > 10) { BUP_st = 1; BUP_cpt = 0;}
+      BDOWN_cpt = 0;
+    }
+    else if (digitalRead(B_DOWN) == 0)
+    {
+      BMENU_cpt = 0;
+      BOK_cpt   = 0;
+      BUP_cpt   = 0;
+      if( ++BDOWN_cpt > 10) { BDOWN_st = 1; BDOWN_cpt = 0;}
+    }
+    else
+    {
+      BMENU_cpt = 0;
+      BOK_cpt   = 0;
+      BUP_cpt   = 0;
+      BDOWN_cpt = 0;
+    }
+   }
+}
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -66,6 +119,12 @@ void setup() {
   pinMode(B_OK,   INPUT_PULLUP);
   pinMode(B_UP,   INPUT_PULLUP);
   pinMode(B_DOWN, INPUT_PULLUP);
+  
+    //    TIMER 2 CONTROL
+  TCCR2A = 0;                      // No pin change on timer compare
+  TCCR2B = _BV(CS22) | _BV(CS21) | _BV(CS20);  // prescaler = clk / 1024
+  TIMSK2 = _BV(TOIE2);             // overflow interrupt only
+
 
   mesure_timings("fin init : ");
 
@@ -145,11 +204,36 @@ void loop() {
   display.print(" ");
   blocage = MoteurVis.getNB();
   display.println(blocage);
-  display.println(total_s++);
-
+//  display.println(total_s++);
 
   if (blocage >= moteur_blocage_max) {
     etat = ETAT_BLOCAGE;
+  }
+  
+  if (BMENU_st > 0 && etat != ETAT_ARRET) {
+    etat = ETAT_ARRET;
+    BMENU_st = 0;
+  }
+  
+  if (BMENU_st > 0 && etat == ETAT_ARRET) {
+    etat = ETAT_REGLAGE;
+    BMENU_st = 0;
+  }
+  
+  if (BOK_st > 0) {
+    BOK_st = 0;
+
+    // restart boiler !
+    etat = ETAT_REPOS;
+    t = 0;
+    MoteurVis.debloque();
+  }
+  
+  if (BUP_st > 0) {
+    BUP_st = 0;
+  }
+  if (BDOWN_st > 0) {
+    BDOWN_st = 0;
   }
 
   if (etat == ETAT_BLOCAGE){
@@ -157,6 +241,16 @@ void loop() {
     MoteurVis.arret();
     display.print("BLOCAGE ");
     display.print(t);
+  }
+  else if (etat == ETAT_ARRET){
+    display.print("ARRET ");
+    Ventilo.arret();
+    MoteurVis.arret();
+  }
+  else if (etat == ETAT_REGLAGE){
+    display.print("REGLAGE ");
+    Ventilo.arret();
+    MoteurVis.arret();
   }
   else {
     Ventilo.tic(1);
@@ -167,6 +261,7 @@ void loop() {
       t = 0; 
     }
   }
+  
  // mesure_timings("Gestion chaudiere : ");
   //mesure_timings("lcd refresh : ");
 
