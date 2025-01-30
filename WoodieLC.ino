@@ -17,6 +17,8 @@ int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 int moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 int moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
+int B_disable = 0;
+
 int BOK_cpt   = 0;
 int BMENU_cpt = 0;
 int BUP_cpt   = 0;
@@ -38,11 +40,16 @@ void interruptC1()
 
 ISR( TIMER2_OVF_vect )
 {
+  if (B_disable > 0) {
+    B_disable--;
+    return;
+  }
+  
   if ( BMENU_st + BOK_st + BUP_st + BDOWN_st < 1) {
 
     if (digitalRead(B_MENU) == 0)
     {
-      if( ++BMENU_cpt > 10) { BMENU_st = 1; BMENU_cpt = 0;}
+      if( ++BMENU_cpt > BUTTON_VALID) { BMENU_st = 1; BMENU_cpt = 0;}
       BOK_cpt   = 0;
       BUP_cpt   = 0;
       BDOWN_cpt = 0;
@@ -50,7 +57,7 @@ ISR( TIMER2_OVF_vect )
     else if (digitalRead(B_OK) == 0)
     {
       BMENU_cpt = 0;
-      if( ++BOK_cpt > 10) { BOK_st = 1; BOK_cpt = 0;}
+      if( ++BOK_cpt > BUTTON_VALID) { BOK_st = 1; BOK_cpt = 0;}
       BUP_cpt   = 0;
       BDOWN_cpt = 0;
     }
@@ -58,7 +65,7 @@ ISR( TIMER2_OVF_vect )
     {
       BMENU_cpt = 0;
       BOK_cpt   = 0;
-      if( ++BUP_cpt > 10) { BUP_st = 1; BUP_cpt = 0;}
+      if( ++BUP_cpt > BUTTON_VALID) { BUP_st = 1; BUP_cpt = 0;}
       BDOWN_cpt = 0;
     }
     else if (digitalRead(B_DOWN) == 0)
@@ -66,7 +73,7 @@ ISR( TIMER2_OVF_vect )
       BMENU_cpt = 0;
       BOK_cpt   = 0;
       BUP_cpt   = 0;
-      if( ++BDOWN_cpt > 10) { BDOWN_st = 1; BDOWN_cpt = 0;}
+      if( ++BDOWN_cpt > BUTTON_VALID) { BDOWN_st = 1; BDOWN_cpt = 0;}
     }
     else
     {
@@ -78,7 +85,14 @@ ISR( TIMER2_OVF_vect )
    }
 }
 
-
+void clear_button(void) {
+      B_disable = BUTTON_DISABLE;
+      BMENU_st = 0;
+      BOK_st   = 0;
+      BUP_st   = 0;
+      BDOWN_st = 0;
+  
+}
 
 void setup() {
   Serial.begin(115200);
@@ -212,16 +226,16 @@ void loop() {
   
   if (BMENU_st > 0 && etat != ETAT_ARRET) {
     etat = ETAT_ARRET;
-    BMENU_st = 0;
+    clear_button();
   }
   
   if (BMENU_st > 0 && etat == ETAT_ARRET) {
     etat = ETAT_REGLAGE;
-    BMENU_st = 0;
+    clear_button();
   }
   
   if (BOK_st > 0) {
-    BOK_st = 0;
+    clear_button();
 
     // restart boiler !
     etat = ETAT_REPOS;
@@ -230,10 +244,10 @@ void loop() {
   }
   
   if (BUP_st > 0) {
-    BUP_st = 0;
+    clear_button();
   }
   if (BDOWN_st > 0) {
-    BDOWN_st = 0;
+    clear_button();
   }
 
   if (etat == ETAT_BLOCAGE){

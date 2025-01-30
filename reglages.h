@@ -27,6 +27,10 @@
 #define ETAT_ARRET   3
 #define ETAT_REGLAGE 4
 
+
+#define BUTTON_VALID   6
+#define BUTTON_DISABLE 20
+
 /********************************************************
  * Brochage carte
  ********************************************************/
