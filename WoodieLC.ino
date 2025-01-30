@@ -94,6 +94,14 @@ void clear_button(void) {
   
 }
 
+void restart_boiler(void) {
+    // restart boiler !
+    mode = MODE_ON;
+    etat = ETAT_REPOS;
+    t = 0;
+    MoteurVis.debloque();
+  }
+
 void setup() {
   Serial.begin(115200);
   
@@ -139,15 +147,15 @@ void setup() {
   TCCR2B = _BV(CS22) | _BV(CS21) | _BV(CS20);  // prescaler = clk / 1024
   TIMSK2 = _BV(TOIE2);             // overflow interrupt only
 
-
   mesure_timings("fin init : ");
 
   display.clearDisplay();
   display.display();
 
-  
   MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
 
+  // Start in boiler mode
+  mode = MODE_ON;
 }
 
 int blocage = 0;
@@ -173,6 +181,7 @@ void loop() {
   temperature_eau = (int)sensors.getTempCByIndex(0);
   Serial.print (temperature_eau);
 
+  blocage = MoteurVis.getNB();
   // Read thermocouple K
   // Read the temp from the MAX6675
   //temperature_K = (int)temp.read_temp();
@@ -180,6 +189,10 @@ void loop() {
   
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
+  
+
+  switch( mode ) {
+  case MODE_ON:
   
    if ( t == 0 ){
     if (etat == ETAT_REPOS){   // REPOS
@@ -211,62 +224,11 @@ void loop() {
       etat = ETAT_REPOS;
     }
   }
-  
-  display.println(temperature_eau);
-  //display.println(temperature_K);
-  display.print(OpticCount);
-  display.print(" ");
-  blocage = MoteurVis.getNB();
-  display.println(blocage);
-//  display.println(total_s++);
 
   if (blocage >= moteur_blocage_max) {
-    etat = ETAT_BLOCAGE;
-  }
+    mode = MODE_BLOCAGE;
+  } else {
   
-  if (BMENU_st > 0 && etat != ETAT_ARRET) {
-    etat = ETAT_ARRET;
-    clear_button();
-  }
-  
-  if (BMENU_st > 0 && etat == ETAT_ARRET) {
-    etat = ETAT_REGLAGE;
-    clear_button();
-  }
-  
-  if (BOK_st > 0) {
-    clear_button();
-
-    // restart boiler !
-    etat = ETAT_REPOS;
-    t = 0;
-    MoteurVis.debloque();
-  }
-  
-  if (BUP_st > 0) {
-    clear_button();
-  }
-  if (BDOWN_st > 0) {
-    clear_button();
-  }
-
-  if (etat == ETAT_BLOCAGE){
-    Ventilo.arret();
-    MoteurVis.arret();
-    display.print("BLOCAGE ");
-    display.print(t);
-  }
-  else if (etat == ETAT_ARRET){
-    display.print("ARRET ");
-    Ventilo.arret();
-    MoteurVis.arret();
-  }
-  else if (etat == ETAT_REGLAGE){
-    display.print("REGLAGE ");
-    Ventilo.arret();
-    MoteurVis.arret();
-  }
-  else {
     Ventilo.tic(1);
     MoteurVis.tic(1, OpticCount);
 
@@ -274,7 +236,53 @@ void loop() {
     if (t >= tempo_cycle ) {
       t = 0; 
     }
+    display.print(t);
   }
+  
+  break;
+  
+  case MODE_BLOCAGE:
+    Ventilo.arret();
+    MoteurVis.arret();
+    display.print("BLOCAGE ");
+    display.print(t);
+    
+    if (BOK_st > 0 ) {
+      restart_boiler();
+    }
+  break;
+  
+  case MODE_STOP:
+    display.print("ARRET ");
+    Ventilo.arret();
+    MoteurVis.arret();
+  break;
+  
+  case MODE_REGLAGE:
+    display.print("REGLAGE ");
+    Ventilo.arret();
+    MoteurVis.arret();
+  break;
+
+  }
+//  display.println(total_s++);
+  
+  if (BMENU_st > 0 ) {
+    switch( mode ) {
+    case MODE_ON:
+    case MODE_BLOCAGE:
+      mode = MODE_STOP;
+      break;
+    case MODE_STOP:
+      mode = MODE_REGLAGE;
+      break;
+    case MODE_REGLAGE:
+      restart_boiler();
+      break;
+    }  
+  } 
+
+  clear_button();
   
  // mesure_timings("Gestion chaudiere : ");
   //mesure_timings("lcd refresh : ");

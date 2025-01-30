@@ -17,7 +17,8 @@ unsigned long OpticStamp =0;
 
 long t=0;
 int led=0;  // clignotement led
-int etat = ETAT_REPOS;   //etat repos
+int etat = ETAT_REPOS;   // etat repos
+int mode = MODE_ON;  // Start boiler
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 

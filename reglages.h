@@ -21,12 +21,15 @@
  * Defines
  ********************************************************/
 
+// Boiler state
 #define ETAT_REPOS   0
 #define ETAT_CHAUFFE 1
-#define ETAT_BLOCAGE 2
-#define ETAT_ARRET   3
-#define ETAT_REGLAGE 4
 
+// Boiler mode
+#define MODE_ON      1
+#define MODE_STOP    2
+#define MODE_REGLAGE 3
+#define MODE_BLOCAGE 4
 
 #define BUTTON_VALID   6
 #define BUTTON_DISABLE 20
