@@ -102,6 +102,11 @@ void restart_boiler(void) {
     MoteurVis.debloque();
   }
 
+int blocage = 0;
+int nb_cycle = 0;
+int stat_cycle = 0;
+int stat_repos = 0;
+
 void setup() {
   Serial.begin(115200);
   
@@ -158,7 +163,6 @@ void setup() {
   mode = MODE_ON;
 }
 
-int blocage = 0;
 
 void loop() {
   t_loop_debut = millis();
@@ -192,10 +196,10 @@ void loop() {
   
   display.println(temperature_eau);
   //display.println(temperature_K);
-  display.print(OpticCount);         
-  display.print(" ");              
-  blocage = MoteurVis.getNB();     
-  display.println(blocage);        
+  display.print(OpticCount);
+  display.print(" ");
+  blocage = MoteurVis.getNB();
+  display.println(blocage);
 
   switch( mode ) {
   case MODE_ON:
@@ -206,10 +210,13 @@ void loop() {
        MoteurVis.demarre(tempo_moteur);
        Ventilo.demarre(tempo_ventilo);
        etat = ETAT_CHAUFFE;
+       stat_repos = t;
        t = 0;
+       nb_cycle = 0;
      } else {
        t += 1;
      }
+     display.println(t);
      break;
   
     case ETAT_CHAUFFE:
@@ -217,9 +224,11 @@ void loop() {
         if (temperature_eau <= temperature_arret) {
           MoteurVis.demarre(tempo_moteur);
           Ventilo.demarre(tempo_ventilo);
+          nb_cycle++;
         }
         else {
           etat = ETAT_REPOS;
+          stat_cycle = nb_cycle;
         }
       }
 
@@ -233,9 +242,14 @@ void loop() {
           t = 0; 
         }
       }
+      display.print(t);
+      display.print(" ");
+      display.println(nb_cycle);
     break;
     }
-    display.print(t);
+    if ( stat_cycle != 0) display.print(stat_cycle);
+    display.print(" ");
+    if ( stat_repos != 0) display.print(stat_repos);
   
   break;
   
