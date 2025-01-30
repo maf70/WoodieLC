@@ -190,54 +190,52 @@ void loop() {
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
   
+  display.println(temperature_eau);
+  //display.println(temperature_K);
+  display.print(OpticCount);         
+  display.print(" ");              
+  blocage = MoteurVis.getNB();     
+  display.println(blocage);        
 
   switch( mode ) {
   case MODE_ON:
   
-   if ( t == 0 ){
-    if (etat == ETAT_REPOS){   // REPOS
+    switch( etat ) {
+    case ETAT_REPOS:
      if (temperature_eau <= temperature_demarrage) {
-      MoteurVis.demarre(tempo_moteur);
-      Ventilo.demarre(tempo_ventilo);
-      etat = ETAT_CHAUFFE;
+       MoteurVis.demarre(tempo_moteur);
+       Ventilo.demarre(tempo_ventilo);
+       etat = ETAT_CHAUFFE;
+       t = 0;
+     } else {
+       t += 1;
      }
-    }
-    else {
-     if (etat == ETAT_CHAUFFE) { // CHAUFFE
-       if (temperature_eau <= temperature_arret) {
-         MoteurVis.demarre(tempo_moteur);
-         Ventilo.demarre(tempo_ventilo);
-       }
-       else {
-         etat = ETAT_REPOS;
-       }
-        
-     }
-//  mesure_timings("CHAUFFE : ");
-
-    }
-   }
-   
-   if ( t > 0 && etat == ETAT_REPOS){
-    if (temperature_eau <= temperature_demarrage) {
-      t = -1;  // Nouveau cycle a la prochaine boucle
-      etat = ETAT_REPOS;
-    }
-  }
-
-  if (blocage >= moteur_blocage_max) {
-    mode = MODE_BLOCAGE;
-  } else {
+     break;
   
-    Ventilo.tic(1);
-    MoteurVis.tic(1, OpticCount);
+    case ETAT_CHAUFFE:
+      if ( t == 0 ){
+        if (temperature_eau <= temperature_arret) {
+          MoteurVis.demarre(tempo_moteur);
+          Ventilo.demarre(tempo_ventilo);
+        }
+        else {
+          etat = ETAT_REPOS;
+        }
+      }
 
-    t += 1;
-    if (t >= tempo_cycle ) {
-      t = 0; 
+      if (blocage >= moteur_blocage_max) {
+        mode = MODE_BLOCAGE;
+      } else {
+        Ventilo.tic(1);
+        MoteurVis.tic(1, OpticCount);
+
+        if (++t >= tempo_cycle ) {
+          t = 0; 
+        }
+      }
+    break;
     }
     display.print(t);
-  }
   
   break;
   
@@ -256,6 +254,10 @@ void loop() {
     display.print("ARRET ");
     Ventilo.arret();
     MoteurVis.arret();
+    
+    if (BOK_st > 0 ) {
+      restart_boiler();
+    }
   break;
   
   case MODE_REGLAGE:
