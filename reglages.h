@@ -16,6 +16,10 @@
 #define MOTEUR_VITESSE_MIN       5
 #define MOTEUR_BLOCAGE_MAX       3
 
+#define TEMPERATURE_DEMARRAGE_MIN  28
+#define TEMPERATURE_DEMARRAGE_MAX  32
+#define TEMPERATURE_ARRET_MIN      33
+#define TEMPERATURE_ARRET_MAX      37
 
 /********************************************************
  * Defines
@@ -33,6 +37,17 @@
 
 #define BUTTON_VALID   6
 #define BUTTON_DISABLE 20
+
+
+// Setting state
+#define REGLAGE_NONE        0
+#define REGLAGE_INIT        1
+#define REGLAGE_TEMP_START  2
+#define REGLAGE_TEMP_STOP   3
+#define REGLAGE_CYCLE       4
+#define REGLAGE_MOTOR       5
+#define REGLAGE_VENTILO     6         //FAN
+
 
 /********************************************************
  * Brochage carte

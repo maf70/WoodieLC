@@ -94,18 +94,61 @@ void clear_button(void) {
   
 }
 
-void restart_boiler(void) {
-    // restart boiler !
-    mode = MODE_ON;
-    etat = ETAT_REPOS;
-    t = 0;
-    MoteurVis.debloque();
-  }
-
 int blocage = 0;
 int nb_cycle = 0;
 int stat_cycle = 0;
 int stat_repos = 0;
+int reglage = REGLAGE_NONE;
+int tmp_reglage  = -1;
+int reglage_next = 0;
+
+void restart_boiler(void) {
+    // restart boiler !
+    mode = MODE_ON;
+    etat = ETAT_REPOS;
+    reglage = REGLAGE_NONE;
+    tmp_reglage = -1;
+    t = 0;
+    MoteurVis.debloque();
+  }
+
+int affiche_reglage(const char * message, int valeur){
+  display.print(message);
+  display.print(": ");
+  display.print(valeur);
+}
+
+int affiche_Chaudiere(const char * message){
+  display.println(message);
+}
+
+int affiche_arret(const char * message, int valeur){
+  display.println("  ARRET");
+}
+
+void exit_reglage(void){
+  restart_boiler();
+}
+
+#define SET_PARAM( param , value, message, pmin, pmax)  \
+        if      (BUP_st   > 0 ) { tmp_reglage++; }\
+        else if (BDOWN_st > 0 ) { tmp_reglage--; }\
+        else if (BOK_st   > 0 ) { value = tmp_reglage; \
+                                  reglage_next = 1; \
+                                  }\
+        else if (BMENU_st > 0 ) { exit_reglage(); }\
+\
+        if ( pmin > tmp_reglage ) { tmp_reglage = pmin; }\
+        else if (pmax < tmp_reglage ) { tmp_reglage = pmax; }\
+\
+        affiche_reglage(message, tmp_reglage);
+        
+#define SET_NEXT_REGLAGE( pnext, snext)  \
+        if (reglage_next == 1) { \
+          tmp_reglage = pnext;\
+          reglage = snext;\
+          reglage_next = 0; \
+        }
 
 void setup() {
   Serial.begin(115200);
@@ -194,7 +237,8 @@ void loop() {
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
   
-  display.println(temperature_eau);
+  display.print(temperature_eau);
+  display.print(" ");
   //display.println(temperature_K);
   display.print(OpticCount);
   display.print(" ");
@@ -275,9 +319,32 @@ void loop() {
   break;
   
   case MODE_REGLAGE:
-    display.print("REGLAGE ");
+    display.println("REGLAGE ");
     Ventilo.arret();
     MoteurVis.arret();
+
+    switch ( reglage ) {
+      case REGLAGE_INIT:
+        reglage = REGLAGE_TEMP_START;
+        tmp_reglage = temperature_demarrage;
+
+      case REGLAGE_TEMP_START:
+        SET_PARAM( "TEMP_START" , temperature_demarrage, "Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
+        SET_NEXT_REGLAGE (temperature_arret, REGLAGE_TEMP_STOP);
+        break;
+
+      case REGLAGE_TEMP_STOP:
+        SET_PARAM( "TEMP_ARRET" , temperature_arret, "Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
+        SET_NEXT_REGLAGE (tempo_cycle, REGLAGE_CYCLE);
+        break;
+
+      case REGLAGE_CYCLE:
+          restart_boiler();
+        break;
+
+    }
+    clear_button();
+
   break;
 
   }
@@ -291,6 +358,7 @@ void loop() {
       break;
     case MODE_STOP:
       mode = MODE_REGLAGE;
+      reglage = REGLAGE_INIT;
       break;
     case MODE_REGLAGE:
       restart_boiler();
