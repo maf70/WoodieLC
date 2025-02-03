@@ -4,9 +4,15 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 
+#include <OneWire.h>
+#include <DallasTemperature.h>
+//#include <MAX6675.h>
+
+#include "debug.h"
+
 #include "moteur.h"
 
-long temperature_eau = -300;  // Temperature output variable
+u8 temperature_eau = 0;  // Temperature output variable
 //long temperature_K   = -300;  // Temperature output variable
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
@@ -15,18 +21,12 @@ actionneur Ventilo(RELAIS_VENTILO);
 int OpticCount = 0;
 unsigned long OpticStamp =0;
 
-long t=0;
-int led=0;  // clignotement led
-int etat = ETAT_REPOS;   // etat repos
-int mode = MODE_ON;  // Start boiler
+int t=0;
+u8 led=0;  // clignotement led
+u8 etat = ETAT_REPOS;   // etat repos
+u8 mode = MODE_ON;  // Start boiler
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-#include <OneWire.h>
-#include <DallasTemperature.h>
-//#include <MAX6675.h>
-
-#include "debug.h"
 
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)

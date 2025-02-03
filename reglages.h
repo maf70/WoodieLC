@@ -1,4 +1,5 @@
 
+#define TEST
 
 /********************************************************
  * Constantes
@@ -16,10 +17,36 @@
 #define MOTEUR_VITESSE_MIN       5
 #define MOTEUR_BLOCAGE_MAX       3
 
-#define TEMPERATURE_DEMARRAGE_MIN  28
-#define TEMPERATURE_DEMARRAGE_MAX  32
-#define TEMPERATURE_ARRET_MIN      33
-#define TEMPERATURE_ARRET_MAX      37
+#ifdef TEST
+  #define TEMPERATURE_DEMARRAGE      30
+  #define TEMPERATURE_ARRET          33
+
+  #define TEMPERATURE_DEMARRAGE_MIN  28
+  #define TEMPERATURE_DEMARRAGE_MAX  32
+  #define TEMPERATURE_ARRET_MIN      33
+  #define TEMPERATURE_ARRET_MAX      37
+#elif
+  #define TEMPERATURE_DEMARRAGE      60
+  #define TEMPERATURE_ARRET          62
+
+  #define TEMPERATURE_DEMARRAGE_MIN  40
+  #define TEMPERATURE_DEMARRAGE_MAX  70
+  #define TEMPERATURE_ARRET_MIN      41
+  #define TEMPERATURE_ARRET_MAX      71
+#endif
+
+#define TEMPO_CYCLE_MIN            30
+#define TEMPO_CYCLE_MAX           300
+#define TEMPO_VENTILO_MIN           5
+#define TEMPO_VENTILO_MAX          30
+#define TEMPO_MOTOR_MIN             5
+#define TEMPO_MOTOR_MAX            30
+#define TEMPO_MOTOR_I_MIN           1
+#define TEMPO_MOTOR_I_MAX           5
+#define TEMPO_MOTOR_C_MIN           5
+#define TEMPO_MOTOR_C_MAX          30
+#define TEMPO_MOTOR_B_MIN           1
+#define TEMPO_MOTOR_B_MAX          15
 
 /********************************************************
  * Defines
@@ -47,8 +74,12 @@
 #define REGLAGE_TEMP_START  2
 #define REGLAGE_TEMP_STOP   3
 #define REGLAGE_CYCLE       4
-#define REGLAGE_MOTOR       5
-#define REGLAGE_VENTILO     6         //FAN
+#define REGLAGE_VENTILO     5         //FAN
+#define REGLAGE_MOTOR       6
+#define REGLAGE_MOTOR_INV   7
+#define REGLAGE_MOTOR_COUNT 8
+#define REGLAGE_MOTOR_BLOCK 9
+#define REGLAGE_END        10
 
 
 /********************************************************

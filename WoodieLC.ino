@@ -5,8 +5,8 @@
 #include "reglages.h"
 #include "init.h"
 
-int temperature_demarrage = TEMPERATURE_DEMARRAGE;
-int temperature_arret     = TEMPERATURE_ARRET;
+u8 temperature_demarrage = TEMPERATURE_DEMARRAGE;
+u8 temperature_arret     = TEMPERATURE_ARRET;
 
 int tempo_cycle   = TEMPO_CYCLE;
 int tempo_ventilo = TEMPO_VENTILO;
@@ -14,20 +14,20 @@ int tempo_moteur  = TEMPO_MOTEUR;
 
 int moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
 int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
-int moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
-int moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
+u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
+u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
-int B_disable = 0;
+u8 B_disable = 0;
 
-int BOK_cpt   = 0;
-int BMENU_cpt = 0;
-int BUP_cpt   = 0;
-int BDOWN_cpt = 0;
+u8 BOK_cpt   = 0;
+u8 BMENU_cpt = 0;
+u8 BUP_cpt   = 0;
+u8 BDOWN_cpt = 0;
 
-int BOK_st   = 0;
-int BMENU_st = 0;
-int BUP_st   = 0;
-int BDOWN_st = 0;
+u8 BOK_st   = 0;
+u8 BMENU_st = 0;
+u8 BUP_st   = 0;
+u8 BDOWN_st = 0;
 
 void interruptC1()
 {
@@ -94,13 +94,13 @@ void clear_button(void) {
   
 }
 
-int blocage = 0;
+u8 blocage = 0;
 int nb_cycle = 0;
 int stat_cycle = 0;
 int stat_repos = 0;
-int reglage = REGLAGE_NONE;
+u8 reglage = REGLAGE_NONE;
 int tmp_reglage  = -1;
-int reglage_next = 0;
+u8 reglage_next = 0;
 
 void restart_boiler(void) {
     // restart boiler !
@@ -335,19 +335,48 @@ void loop() {
         tmp_reglage = temperature_demarrage;
 
       case REGLAGE_TEMP_START:
-        SET_PARAM( "TEMP_START" , temperature_demarrage, "Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
+        SET_PARAM( TEMP_START , temperature_demarrage, "Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
         SET_NEXT_REGLAGE (temperature_arret, REGLAGE_TEMP_STOP);
         break;
 
       case REGLAGE_TEMP_STOP:
-        SET_PARAM( "TEMP_ARRET" , temperature_arret, "Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
+        SET_PARAM( TEMP_ARRET , temperature_arret, "Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
         SET_NEXT_REGLAGE (tempo_cycle, REGLAGE_CYCLE);
         break;
 
       case REGLAGE_CYCLE:
-          restart_boiler();
+        SET_PARAM( CYCLE , tempo_cycle, "Cycle", TEMPO_CYCLE_MIN, TEMPO_CYCLE_MAX);
+        SET_NEXT_REGLAGE (tempo_ventilo, REGLAGE_VENTILO);
         break;
 
+      case REGLAGE_VENTILO:
+        SET_PARAM( VENTILO , tempo_ventilo, "Ventilo", TEMPO_VENTILO_MIN, tempo_cycle-1);
+        SET_NEXT_REGLAGE (tempo_moteur, REGLAGE_MOTOR);
+        break;
+
+      case REGLAGE_MOTOR:
+        SET_PARAM( MOTOR , tempo_moteur, "MOTEUR", TEMPO_MOTOR_MIN, tempo_cycle-1);
+        SET_NEXT_REGLAGE (moteur_duree_inversion, REGLAGE_MOTOR_INV);
+        break;
+
+      case REGLAGE_MOTOR_INV:
+        SET_PARAM( MOTOR INV , moteur_duree_inversion, "", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
+        SET_NEXT_REGLAGE (moteur_vitesse_min, REGLAGE_MOTOR_COUNT);
+        break;
+
+      case REGLAGE_MOTOR_COUNT:
+        SET_PARAM( COUNTER , moteur_vitesse_min, "COMPTEUR", TEMPO_MOTOR_C_MIN, TEMPO_MOTOR_C_MAX);
+        SET_NEXT_REGLAGE (moteur_blocage_max, REGLAGE_MOTOR_BLOCK);
+        break;
+
+      case REGLAGE_MOTOR_BLOCK:
+        SET_PARAM( BLOCKING , moteur_blocage_max, "BLOCAGES", TEMPO_MOTOR_B_MIN, TEMPO_MOTOR_B_MAX);
+        SET_NEXT_REGLAGE (-1, REGLAGE_END);
+        break;
+
+      case REGLAGE_END:
+        restart_boiler();
+        break;
     }
     clear_button();
 
@@ -410,7 +439,9 @@ void loop() {
   t_loop_fin = millis();
   t_loop_delai = t_loop_fin - t_loop_debut;
 
-  //if (t_loop_delai >= 1000) t_loop_delai = 900;
+  // protect against millis overflow
+  if (t_loop_fin < t_loop_debut) t_loop_delai = 0;
+
   
   /* Rafraichissement une fois par seconde */ 
   delay(1000-t_loop_delai); 
