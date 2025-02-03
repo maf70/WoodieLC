@@ -311,12 +311,17 @@ void loop() {
     display.println("  ARRET ");
     display.println("INV VENTIL");
     display.println("VIS  REGL.");
-    Ventilo.arret();
-    MoteurVis.arret();
     
-    if (BOK_st > 0 ) {
-      restart_boiler();
+    if (BDOWN_st > 0 ) {
+      MoteurVis.debloque();
+      MoteurVis.demarre(tempo_moteur);
+    } else if (BOK_st > 0 ) {
+      Ventilo.demarre(tempo_ventilo);
     }
+
+    Ventilo.tic(1);
+    MoteurVis.tic(1, OpticCount);
+
   break;
   
   case MODE_REGLAGE:
@@ -375,6 +380,8 @@ void loop() {
     case MODE_ON:
     case MODE_BLOCAGE:
       mode = MODE_STOP;
+      Ventilo.arret();
+      MoteurVis.arret();
       break;
     case MODE_STOP:
       mode = MODE_REGLAGE;
