@@ -11,8 +11,8 @@ void mesure_timings(const char * s) {
   unsigned long t_ = millis();
   
   
-  Serial.print (s);
-  Serial.println (t_ - t_prev);
+ // Serial.print (s);
+ // Serial.println (t_ - t_prev);
   t_prev = t_;
 }
 

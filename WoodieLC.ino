@@ -151,7 +151,7 @@ void exit_reglage(void){
         }
 
 void setup() {
-  Serial.begin(115200);
+  //Serial.begin(115200);
   
   /* Initialise le port I2C */
   Wire.begin();
@@ -226,7 +226,7 @@ void loop() {
   // You can have more than one IC on the same bus. 
   // 0 refers to the first IC on the wire
   temperature_eau = (int)sensors.getTempCByIndex(0);
-  Serial.print (temperature_eau);
+  //Serial.print (temperature_eau);
 
   blocage = MoteurVis.getNB();
   // Read thermocouple K
