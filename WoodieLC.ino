@@ -114,7 +114,7 @@ void restart_boiler(void) {
 
 int affiche_reglage(const char * message, int valeur){
   display.print(message);
-  display.print(": ");
+  display.println(": ");
   display.print(valeur);
 }
 
@@ -355,22 +355,22 @@ void loop() {
         break;
 
       case REGLAGE_MOTOR:
-        SET_PARAM( MOTOR , tempo_moteur, "MOTEUR", TEMPO_MOTOR_MIN, tempo_cycle-1);
+        SET_PARAM( MOTOR , tempo_moteur, "Moteur", TEMPO_MOTOR_MIN, tempo_cycle-1);
         SET_NEXT_REGLAGE (moteur_duree_inversion, REGLAGE_MOTOR_INV);
         break;
 
       case REGLAGE_MOTOR_INV:
-        SET_PARAM( MOTOR INV , moteur_duree_inversion, "", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
+        SET_PARAM( MOTOR INV , moteur_duree_inversion, "Inversion", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
         SET_NEXT_REGLAGE (moteur_vitesse_min, REGLAGE_MOTOR_COUNT);
         break;
 
       case REGLAGE_MOTOR_COUNT:
-        SET_PARAM( COUNTER , moteur_vitesse_min, "COMPTEUR", TEMPO_MOTOR_C_MIN, TEMPO_MOTOR_C_MAX);
+        SET_PARAM( COUNTER , moteur_vitesse_min, "Compteur", TEMPO_MOTOR_C_MIN, TEMPO_MOTOR_C_MAX);
         SET_NEXT_REGLAGE (moteur_blocage_max, REGLAGE_MOTOR_BLOCK);
         break;
 
       case REGLAGE_MOTOR_BLOCK:
-        SET_PARAM( BLOCKING , moteur_blocage_max, "BLOCAGES", TEMPO_MOTOR_B_MIN, TEMPO_MOTOR_B_MAX);
+        SET_PARAM( BLOCKING , moteur_blocage_max, "Blocages", TEMPO_MOTOR_B_MIN, TEMPO_MOTOR_B_MAX);
         SET_NEXT_REGLAGE (-1, REGLAGE_END);
         break;
 
