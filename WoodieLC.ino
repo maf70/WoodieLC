@@ -127,7 +127,7 @@ int affiche_arret(const char * message, int valeur){
 }
 
 void exit_reglage(void){
-  restart_boiler();
+    mode = MODE_STATS;
 }
 
 #define SET_PARAM( param , value, message, pmin, pmax)  \
@@ -237,13 +237,12 @@ void loop() {
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
   
-  display.print(temperature_eau);
-  display.print(" ");
+  display.print(temperature_eau, DEC);
+  display.print(F(" "));
   //display.println(temperature_K);
-  display.print(OpticCount);
-  display.print(" ");
-  blocage = MoteurVis.getNB();
-  display.println(blocage);
+  display.print(OpticCount, DEC);
+  display.print(F(" "));
+  display.println(blocage, DEC);
 
   switch( mode ) {
   case MODE_ON:
@@ -260,7 +259,7 @@ void loop() {
      } else {
        t += 1;
      }
-     display.println(t);
+     display.println(t, DEC);
      break;
   
     case ETAT_CHAUFFE:
@@ -286,21 +285,21 @@ void loop() {
           t = 0; 
         }
       }
-      display.print(t);
-      display.print(" ");
-      display.println(nb_cycle);
+      display.print(t, DEC);
+      display.print(F(" "));
+      display.println(nb_cycle, DEC);
     break;
     }
-    if ( stat_cycle != 0) display.print(stat_cycle);
+    if ( stat_cycle != 0) display.print(stat_cycle, DEC);
     display.print(" ");
-    if ( stat_repos != 0) display.print(stat_repos);
+    if ( stat_repos != 0) display.print(stat_repos, DEC);
   
   break;
   
   case MODE_BLOCAGE:
     Ventilo.arret();
     MoteurVis.arret();
-    display.print("BLOCAGE ");
+    display.print(" BLOCAGE ");
     display.print(t);
     
     if (BOK_st > 0 ) {
@@ -309,7 +308,9 @@ void loop() {
   break;
   
   case MODE_STOP:
-    display.print("ARRET ");
+    display.println("  ARRET ");
+    display.println("INV VENTIL");
+    display.println("VIS  REGL.");
     Ventilo.arret();
     MoteurVis.arret();
     
@@ -319,7 +320,7 @@ void loop() {
   break;
   
   case MODE_REGLAGE:
-    display.println("REGLAGE ");
+    display.println(" REGLAGE");
     Ventilo.arret();
     MoteurVis.arret();
 
@@ -347,6 +348,25 @@ void loop() {
 
   break;
 
+  case MODE_STATS:
+    display.println("  STATS ");
+    display.println(millis()/1000);
+
+    if (BOK_st > 0 ) {
+      restart_boiler();
+    }
+  break;
+
+  case MODE_VERSION:
+    display.println("VERSION");
+    display.println("03-Fev-25");
+    display.println("526c78b");
+
+    if (BOK_st > 0 ) {
+      restart_boiler();
+    }
+  break;
+
   }
 //  display.println(total_s++);
   
@@ -361,6 +381,12 @@ void loop() {
       reglage = REGLAGE_INIT;
       break;
     case MODE_REGLAGE:
+      mode = MODE_STATS;
+      break;
+    case MODE_STATS:
+      mode = MODE_VERSION;
+      break;
+    case MODE_VERSION:
       restart_boiler();
       break;
     }  

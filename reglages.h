@@ -33,7 +33,9 @@
 #define MODE_ON      1
 #define MODE_STOP    2
 #define MODE_REGLAGE 3
-#define MODE_BLOCAGE 4
+#define MODE_STATS   4
+#define MODE_VERSION 5
+#define MODE_BLOCAGE 6
 
 #define BUTTON_VALID   6
 #define BUTTON_DISABLE 20
@@ -71,9 +73,6 @@
 #define B_OK      A1        // S2
 #define B_UP      A3        // S4
 #define B_DOWN    A2        // S3
-
-#define I2C_EXT_EEPROM 0x50
-#define I2C_EXT_SIZE   32768
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels

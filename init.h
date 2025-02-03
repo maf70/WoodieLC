@@ -20,7 +20,7 @@ int led=0;  // clignotement led
 int etat = ETAT_REPOS;   // etat repos
 int mode = MODE_ON;  // Start boiler
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #include <OneWire.h>
 #include <DallasTemperature.h>

@@ -17,4 +17,3 @@ void mesure_timings(const char * s) {
 }
 
 #endif
-
