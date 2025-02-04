@@ -403,8 +403,31 @@ void loop() {
   break;
 
   case MODE_STATS:
+  {
+    long int uptime=millis()/1000;
+
     display.println("  STATS ");
-    display.println(millis()/1000);
+    // up time since power on
+    if ( uptime / 86400 > 1 ) {
+      display.print(uptime/86400);
+      display.print("J ");
+      display.print(uptime%86400/3600);
+      display.print("h");
+    } else if ( uptime / 3600 > 1 ) {
+      display.print(uptime/3600);
+      display.print("h ");
+      display.print((uptime%3600)/60);
+      display.print("mn");
+    } else if ( uptime / 60 > 1 ) {
+      display.print(uptime/60);
+      display.print("mn ");
+      display.print(uptime%60);
+      display.print("s");
+    } else {
+      display.print(uptime%60);
+      display.print("s");
+    }
+  }
 
     if (BOK_st > 0 ) {
       restart_boiler();
@@ -412,9 +435,9 @@ void loop() {
   break;
 
   case MODE_VERSION:
-    display.println("VERSION");
+    display.println(" VERSION");
     display.println("03-Fev-25");
-    display.println("526c78b");
+    display.println(" 526c78b");
 
     if (BOK_st > 0 ) {
       restart_boiler();
