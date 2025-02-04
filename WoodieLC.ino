@@ -17,9 +17,12 @@ int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
-u8 temperature_secu = TEMP_SECU;
-u8 temperature_vis =  TEMP_VIS;
+int temperature_secu = TEMP_SECU;
+int temperature_vis_max =  TEMP_VIS;
+int memorise_temperature =  -2;
 u8 probe_select =  PROBE_SELECT;
+u8 probe_nb     =  0;
+u8 error        =  0;
 
 u8 B_disable = 0;
 
@@ -222,16 +225,36 @@ void loop() {
   led ^= 1;
   digitalWrite(LED_BUILTIN, led & 0x01);
   
-  // call sensors.requestTemperatures() to issue a global temperature
-  // request to all devices on the bus
-  //Serial.print(" Requesting temperatures...");
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  mesure_timings("Sonde db180 lue : ");
-
-  // You can have more than one IC on the same bus. 
+  // You can have more than one IC on the same bus.
   // 0 refers to the first IC on the wire
-  temperature_eau = (int)sensors.getTempCByIndex(0);
-  //Serial.print (temperature_eau);
+  probe_nb = sensors.getDeviceCount();
+  if ( probe_nb == 0 ) {
+    mode = MODE_BLOCAGE;
+    error = ERROR_0_PROBE;
+    temperature_eau = -1;
+    temperature_vis = -1;
+  } else if ( probe_nb == 1 ) {
+    mode = MODE_BLOCAGE;
+    error = ERROR_1_PROBE;
+    temperature_eau = (int)sensors.getTempCByIndex(0);
+    temperature_vis = -1;
+  } else if ( probe_nb > 2 ) {
+    mode = MODE_BLOCAGE;
+    error = ERROR_X_PROBE;
+    temperature_eau = (int)sensors.getTempCByIndex(0);
+    temperature_vis = (int)sensors.getTempCByIndex(1);
+  }
+  else {
+    sensors.requestTemperatures(); // Send the command to get temperatures
+
+    if ( probe_select == 1 ) {
+      temperature_eau = (int)sensors.getTempCByIndex(0);
+      temperature_vis = (int)sensors.getTempCByIndex(1);
+    } else {
+      temperature_eau = (int)sensors.getTempCByIndex(1);
+      temperature_vis = (int)sensors.getTempCByIndex(0);
+    }
+  }
 
   blocage = MoteurVis.getNB();
   // Read thermocouple K
@@ -247,7 +270,9 @@ void loop() {
   //display.println(temperature_K);
   display.print(OpticCount, DEC);
   display.print(F(" "));
-  display.println(blocage, DEC);
+  display.print(blocage, DEC);
+  display.print(F(" "));
+  display.println(temperature_vis, DEC);
 
   switch( mode ) {
   case MODE_ON:
@@ -282,6 +307,7 @@ void loop() {
 
       if (blocage >= moteur_blocage_max) {
         mode = MODE_BLOCAGE;
+        error = ERROR_VIS;
       } else {
         Ventilo.tic(1);
         MoteurVis.tic(1, OpticCount);
@@ -304,7 +330,31 @@ void loop() {
   case MODE_BLOCAGE:
     Ventilo.arret();
     MoteurVis.arret();
-    display.print(" BLOCAGE ");
+    display.println(" ERREUR ");
+    switch ( error ) {
+      case ERROR_1_PROBE:
+        display.println("1 Sonde T");
+        break;
+      case ERROR_0_PROBE:
+        display.println("0 Sonde T");
+        break;
+      case ERROR_X_PROBE:
+        display.println("X Sonde T");
+        break;
+      case ERROR_VIS:
+        display.println("Moteur");
+        break;
+      case ERROR_TEMP_SECU:
+        display.print("T eau ");
+        display.println(temperature_eau, DEC);
+        break;
+      case ERROR_TEMP_VIS:
+        display.print("T vis ");
+        display.println(temperature_vis, DEC);
+        break;
+      default:
+        display.println("Inconnue");
+    }
     display.print(t);
     
     if (BOK_st > 0 ) {
@@ -381,11 +431,11 @@ void loop() {
 
       case REGLAGE_TEMP_SECU:
         SET_PARAM( TEMP_SECU , temperature_secu, "T Secu", TEMP_SECU_MIN, TEMP_SECU_MAX);
-        SET_NEXT_REGLAGE (temperature_vis, REGLAGE_TEMP_VIS);
+        SET_NEXT_REGLAGE (temperature_vis_max, REGLAGE_TEMP_VIS);
         break;
 
       case REGLAGE_TEMP_VIS:
-        SET_PARAM( TEMP_VIS, temperature_vis, "T Vis", TEMP_VIS_MIN, TEMP_VIS_MAX);
+        SET_PARAM( TEMP_VIS, temperature_vis_max, "T Vis", TEMP_VIS_MIN, TEMP_VIS_MAX);
         SET_NEXT_REGLAGE ( probe_select, REGLAGE_PROBE_SELECT);
         break;
 

@@ -85,6 +85,12 @@
 #define REGLAGE_PROBE_SELECT 12
 #define REGLAGE_END          13
 
+#define ERROR_1_PROBE     1
+#define ERROR_0_PROBE     2
+#define ERROR_X_PROBE     3
+#define ERROR_VIS         4
+#define ERROR_TEMP_SECU   5
+#define ERROR_TEMP_VIS    6
 
 /********************************************************
  * Brochage carte
