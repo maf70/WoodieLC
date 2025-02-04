@@ -17,6 +17,10 @@ int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
+u8 temperature_secu = TEMP_SECU;
+u8 temperature_vis =  TEMP_VIS;
+u8 probe_select =  PROBE_SELECT;
+
 u8 B_disable = 0;
 
 u8 BOK_cpt   = 0;
@@ -109,6 +113,7 @@ void restart_boiler(void) {
     reglage = REGLAGE_NONE;
     tmp_reglage = -1;
     t = 0;
+    MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
   }
 
@@ -335,12 +340,12 @@ void loop() {
         tmp_reglage = temperature_demarrage;
 
       case REGLAGE_TEMP_START:
-        SET_PARAM( TEMP_START , temperature_demarrage, "Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
+        SET_PARAM( TEMP_START , temperature_demarrage, "T Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
         SET_NEXT_REGLAGE (temperature_arret, REGLAGE_TEMP_STOP);
         break;
 
       case REGLAGE_TEMP_STOP:
-        SET_PARAM( TEMP_ARRET , temperature_arret, "Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
+        SET_PARAM( TEMP_ARRET , temperature_arret, "T Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
         SET_NEXT_REGLAGE (tempo_cycle, REGLAGE_CYCLE);
         break;
 
@@ -360,18 +365,33 @@ void loop() {
         break;
 
       case REGLAGE_MOTOR_INV:
-        SET_PARAM( MOTOR INV , moteur_duree_inversion, "Inversion", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
+        SET_PARAM( MOTOR INV , moteur_duree_inversion, "Invers.", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
         SET_NEXT_REGLAGE (moteur_vitesse_min, REGLAGE_MOTOR_COUNT);
         break;
 
       case REGLAGE_MOTOR_COUNT:
-        SET_PARAM( COUNTER , moteur_vitesse_min, "Compteur", TEMPO_MOTOR_C_MIN, TEMPO_MOTOR_C_MAX);
+        SET_PARAM( COUNTER , moteur_vitesse_min, "Compteur", COUNT_MOTOR_C_MIN, COUNT_MOTOR_C_MAX);
         SET_NEXT_REGLAGE (moteur_blocage_max, REGLAGE_MOTOR_BLOCK);
         break;
 
       case REGLAGE_MOTOR_BLOCK:
-        SET_PARAM( BLOCKING , moteur_blocage_max, "Blocages", TEMPO_MOTOR_B_MIN, TEMPO_MOTOR_B_MAX);
-        SET_NEXT_REGLAGE (-1, REGLAGE_END);
+        SET_PARAM( BLOCKING , moteur_blocage_max, "Blocages", COUNT_MOTOR_B_MIN, COUNT_MOTOR_B_MAX);
+        SET_NEXT_REGLAGE (temperature_secu, REGLAGE_TEMP_SECU);
+        break;
+
+      case REGLAGE_TEMP_SECU:
+        SET_PARAM( TEMP_SECU , temperature_secu, "T Secu", TEMP_SECU_MIN, TEMP_SECU_MAX);
+        SET_NEXT_REGLAGE (temperature_vis, REGLAGE_TEMP_VIS);
+        break;
+
+      case REGLAGE_TEMP_VIS:
+        SET_PARAM( TEMP_VIS, temperature_vis, "T Vis", TEMP_VIS_MIN, TEMP_VIS_MAX);
+        SET_NEXT_REGLAGE ( probe_select, REGLAGE_PROBE_SELECT);
+        break;
+
+      case REGLAGE_PROBE_SELECT:
+        SET_PARAM( PROBE , probe_select, "Sonde T", PROBE_SELECT_MIN, PROBE_SELECT_MAX);
+        SET_NEXT_REGLAGE ( -1, REGLAGE_END);
         break;
 
       case REGLAGE_END:
