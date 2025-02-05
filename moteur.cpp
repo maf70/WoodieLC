@@ -1,6 +1,4 @@
 
-#include "reglages.h"
-#include "moteur.h"
 
 #if ARDUINO >= 100
 #include "Arduino.h"
@@ -10,6 +8,8 @@ extern "C" {
 }
 #endif
 
+#include "reglages.h"
+#include "moteur.h"
 
 actionneur::actionneur(int p){
   pin=p;
@@ -100,7 +100,7 @@ void moteur::debloque(){
   }
 
 
-void moteur::parametres(int delai, int duree, int vmin){
+void moteur::parametres(u8 delai, u8 duree, u8 vmin){
   moteur_delai_inversion = delai;
   moteur_duree_inversion = duree;
   moteur_vitesse_min = vmin;

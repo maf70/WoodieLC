@@ -5,15 +5,15 @@
 #include "reglages.h"
 #include "init.h"
 
-u8 temperature_demarrage = TEMPERATURE_DEMARRAGE;
-u8 temperature_arret     = TEMPERATURE_ARRET;
+int temperature_demarrage = TEMPERATURE_DEMARRAGE;
+int temperature_arret     = TEMPERATURE_ARRET;
 
 int tempo_cycle   = TEMPO_CYCLE;
 int tempo_ventilo = TEMPO_VENTILO;
 int tempo_moteur  = TEMPO_MOTEUR;
 
-int moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
-int moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
+u8 moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
+u8 moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 

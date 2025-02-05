@@ -1,7 +1,6 @@
 #ifndef __MOTEUR__H__
 #define __MOTEUR__H__
 
-
 class actionneur  {
   public:
   actionneur(int p);
@@ -12,7 +11,7 @@ class actionneur  {
   
   protected:
   int pin;
-  int etat;
+  u8  etat;
   long duree;
 };
 
@@ -23,16 +22,16 @@ class moteur : public actionneur {
   void pause(int p);
   void arret();
   void debloque();
-  void parametres(int delai, int duree, int vmin);
+  void parametres(u8 delai, u8 duree, u8 vmin);
   void tic(int t, int cpt);
-  int getNB() {return nb_blocage;};
+  u8 getNB() {return nb_blocage;};
 
   private:
-  int moteur_delai_inversion;
-  int moteur_duree_inversion;
-  int moteur_vitesse_min;
-  int pin_inverse;
-  int nb_blocage;
+  u8 moteur_delai_inversion;
+  u8 moteur_duree_inversion;
+  u8 moteur_vitesse_min;
+  u8 pin_inverse;
+  u8 nb_blocage;
   int tempo;
 };
 
