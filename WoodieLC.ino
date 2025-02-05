@@ -534,8 +534,8 @@ void loop() {
 
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("04-Fev-25");
-    display.println(" e8e213e ");
+    display.println("05-Fev-25");
+    display.println(" a85e463");
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
