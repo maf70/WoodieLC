@@ -5,21 +5,23 @@
 #include "reglages.h"
 #include "init.h"
 
-int temperature_demarrage = TEMPERATURE_DEMARRAGE;
-int temperature_arret     = TEMPERATURE_ARRET;
+#include <EEPROM.h>
 
-int tempo_cycle   = TEMPO_CYCLE;
-int tempo_ventilo = TEMPO_VENTILO;
-int tempo_moteur  = TEMPO_MOTEUR;
+u8 temperature_demarrage = TEMPERATURE_DEMARRAGE;
+u8 temperature_arret     = TEMPERATURE_ARRET;
+
+u8 tempo_cycle   = TEMPO_CYCLE;
+u8 tempo_ventilo = TEMPO_VENTILO;
+u8 tempo_moteur  = TEMPO_MOTEUR;
 
 u8 moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
 u8 moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
 u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
 u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
-int temperature_secu = TEMP_SECU;
-int temperature_vis_max =  TEMP_VIS;
-int memorise_temperature =  -2;
+u8 temperature_secu = TEMP_SECU;
+u8 temperature_vis_max =  TEMP_VIS;
+u8 memorise_temperature =  -2;
 u8 probe_select =  PROBE_SELECT;
 u8 probe_nb     =  0;
 u8 error        =  0;
@@ -158,6 +160,13 @@ void exit_reglage(void){
           reglage_next = 0; \
         }
 
+#define READ_REGLAGE( value, address, vmin, vmax, vdefaut)  \
+        value = EEPROM.read(address);\
+        if (value < vmin || value > vmax) { value = vdefaut;};
+
+#define SAVE_REGLAGE( value, address)  \
+        EEPROM.update(address, value);\
+
 void setup() {
   //Serial.begin(115200);
   
@@ -200,6 +209,18 @@ void setup() {
 
   display.clearDisplay();
   display.display();
+
+  READ_REGLAGE( temperature_demarrage , EEPROM_TEMPERATURE_DEMARRAGE , TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX, TEMPERATURE_DEMARRAGE );
+  READ_REGLAGE( temperature_arret     , EEPROM_TEMPERATURE_ARRET     , TEMPERATURE_ARRET_MIN    , TEMPERATURE_ARRET_MAX    , TEMPERATURE_ARRET     );
+  READ_REGLAGE( tempo_cycle           , EEPROM_TEMPO_CYCLE           , TEMPO_CYCLE_MIN          , TEMPO_CYCLE_MAX          , TEMPO_CYCLE           );
+  READ_REGLAGE( tempo_ventilo         , EEPROM_TEMPO_VENTILO         , TEMPO_VENTILO_MIN        , TEMPO_VENTILO_MAX        , TEMPO_VENTILO         );
+  READ_REGLAGE( tempo_moteur          , EEPROM_TEMPO_MOTEUR          , TEMPO_MOTOR_MIN          , TEMPO_MOTOR_MAX          , TEMPO_MOTEUR          );
+  READ_REGLAGE( moteur_duree_inversion, EEPROM_MOTEUR_DUREE_INVERSION, TEMPO_MOTOR_I_MIN        , TEMPO_MOTOR_I_MAX        , MOTEUR_DUREE_INVERSION);
+  READ_REGLAGE( moteur_vitesse_min    , EEPROM_MOTEUR_VITESSE_MIN    , COUNT_MOTOR_C_MIN        , COUNT_MOTOR_C_MAX        , MOTEUR_VITESSE_MIN    );
+  READ_REGLAGE( moteur_blocage_max    , EEPROM_MOTEUR_BLOCAGE_MAX    , COUNT_MOTOR_B_MIN        , COUNT_MOTOR_B_MAX        , MOTEUR_BLOCAGE_MAX    );
+  READ_REGLAGE( temperature_secu      , EEPROM_TEMP_SECU             , TEMP_SECU_MIN            , TEMP_SECU_MAX            , TEMP_SECU             );
+  READ_REGLAGE( temperature_vis_max   , EEPROM_TEMP_VIS              , TEMP_VIS_MIN             , TEMP_VIS_MAX             , TEMP_VIS              );
+  READ_REGLAGE( probe_select          , EEPROM_PROBE_SELECT          , PROBE_SELECT_MIN         , PROBE_SELECT_MAX         , PROBE_SELECT          );
 
   MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
 
@@ -383,56 +404,67 @@ void loop() {
 
       case REGLAGE_TEMP_START:
         SET_PARAM( TEMP_START , temperature_demarrage, "T Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
+        SAVE_REGLAGE( temperature_demarrage, EEPROM_TEMPERATURE_DEMARRAGE);
         SET_NEXT_REGLAGE (temperature_arret, REGLAGE_TEMP_STOP);
         break;
 
       case REGLAGE_TEMP_STOP:
         SET_PARAM( TEMP_ARRET , temperature_arret, "T Stop", TEMPERATURE_ARRET_MIN, TEMPERATURE_ARRET_MAX);
+        SAVE_REGLAGE( temperature_arret     , EEPROM_TEMPERATURE_ARRET);
         SET_NEXT_REGLAGE (tempo_cycle, REGLAGE_CYCLE);
         break;
 
       case REGLAGE_CYCLE:
         SET_PARAM( CYCLE , tempo_cycle, "Cycle", TEMPO_CYCLE_MIN, TEMPO_CYCLE_MAX);
+        SAVE_REGLAGE( tempo_cycle           , EEPROM_TEMPO_CYCLE);
         SET_NEXT_REGLAGE (tempo_ventilo, REGLAGE_VENTILO);
         break;
 
       case REGLAGE_VENTILO:
         SET_PARAM( VENTILO , tempo_ventilo, "Ventilo", TEMPO_VENTILO_MIN, tempo_cycle-1);
+        SAVE_REGLAGE( tempo_ventilo         , EEPROM_TEMPO_VENTILO);
         SET_NEXT_REGLAGE (tempo_moteur, REGLAGE_MOTOR);
         break;
 
       case REGLAGE_MOTOR:
         SET_PARAM( MOTOR , tempo_moteur, "Moteur", TEMPO_MOTOR_MIN, tempo_cycle-1);
+        SAVE_REGLAGE( tempo_moteur          , EEPROM_TEMPO_MOTEUR);
         SET_NEXT_REGLAGE (moteur_duree_inversion, REGLAGE_MOTOR_INV);
         break;
 
       case REGLAGE_MOTOR_INV:
         SET_PARAM( MOTOR INV , moteur_duree_inversion, "Invers.", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
+        SAVE_REGLAGE( moteur_duree_inversion, EEPROM_MOTEUR_DUREE_INVERSION);
         SET_NEXT_REGLAGE (moteur_vitesse_min, REGLAGE_MOTOR_COUNT);
         break;
 
       case REGLAGE_MOTOR_COUNT:
         SET_PARAM( COUNTER , moteur_vitesse_min, "Compteur", COUNT_MOTOR_C_MIN, COUNT_MOTOR_C_MAX);
+        SAVE_REGLAGE( moteur_vitesse_min    , EEPROM_MOTEUR_VITESSE_MIN);
         SET_NEXT_REGLAGE (moteur_blocage_max, REGLAGE_MOTOR_BLOCK);
         break;
 
       case REGLAGE_MOTOR_BLOCK:
         SET_PARAM( BLOCKING , moteur_blocage_max, "Blocages", COUNT_MOTOR_B_MIN, COUNT_MOTOR_B_MAX);
+        SAVE_REGLAGE( moteur_blocage_max, EEPROM_MOTEUR_BLOCAGE_MAX);
         SET_NEXT_REGLAGE (temperature_secu, REGLAGE_TEMP_SECU);
         break;
 
       case REGLAGE_TEMP_SECU:
         SET_PARAM( TEMP_SECU , temperature_secu, "T Secu", TEMP_SECU_MIN, TEMP_SECU_MAX);
+        SAVE_REGLAGE( temperature_secu      , EEPROM_TEMP_SECU);
         SET_NEXT_REGLAGE (temperature_vis_max, REGLAGE_TEMP_VIS);
         break;
 
       case REGLAGE_TEMP_VIS:
         SET_PARAM( TEMP_VIS, temperature_vis_max, "T Vis", TEMP_VIS_MIN, TEMP_VIS_MAX);
+        SAVE_REGLAGE( temperature_vis_max   , EEPROM_TEMP_VIS);
         SET_NEXT_REGLAGE ( probe_select, REGLAGE_PROBE_SELECT);
         break;
 
       case REGLAGE_PROBE_SELECT:
         SET_PARAM( PROBE , probe_select, "Sonde T", PROBE_SELECT_MIN, PROBE_SELECT_MAX);
+        SAVE_REGLAGE( probe_select          , EEPROM_PROBE_SELECT);
         SET_NEXT_REGLAGE ( -1, REGLAGE_END);
         break;
 
