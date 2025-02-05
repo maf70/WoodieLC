@@ -107,6 +107,8 @@ u8 blocage = 0;
 int nb_cycle = 0;
 int stat_cycle = 0;
 int stat_repos = 0;
+int stat_cycle_total = 0;
+int stat_chauffe_total = 0;
 u8 reglage = REGLAGE_NONE;
 int tmp_reglage  = -1;
 u8 reglage_next = 0;
@@ -308,6 +310,7 @@ void loop() {
        MoteurVis.demarre(tempo_moteur);
        Ventilo.demarre(tempo_ventilo);
        etat = ETAT_CHAUFFE;
+       stat_chauffe_total++;
        stat_repos = t;
        t = 0;
        nb_cycle = 0;
@@ -327,6 +330,7 @@ void loop() {
           MoteurVis.demarre(tempo_moteur);
           Ventilo.demarre(tempo_ventilo);
           nb_cycle++;
+          stat_cycle_total++;
         }
         else {
           etat = ETAT_REPOS;
@@ -503,22 +507,25 @@ void loop() {
       display.print(uptime/86400);
       display.print("J ");
       display.print(uptime%86400/3600);
-      display.print("h");
+      display.println("h");
     } else if ( uptime / 3600 > 1 ) {
       display.print(uptime/3600);
       display.print("h ");
       display.print((uptime%3600)/60);
-      display.print("mn");
+      display.println("mn");
     } else if ( uptime / 60 > 1 ) {
       display.print(uptime/60);
       display.print("mn ");
       display.print(uptime%60);
-      display.print("s");
+      display.println("s");
     } else {
       display.print(uptime%60);
-      display.print("s");
+      display.println("s");
     }
   }
+    display.print(stat_cycle_total);
+    display.print(" ");
+    display.println(stat_chauffe_total);
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
