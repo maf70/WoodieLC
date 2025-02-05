@@ -178,20 +178,15 @@ void setup() {
   display.setTextColor(WHITE); // Draw white text
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font  
-
-  mesure_timings("display pret : ");
   
   // Start up the library
   sensors.begin();
-  mesure_timings("Sensor init : ");
 
   //Serial.println(  sensors.getDeviceCount() );
   sensors.setResolution(9);
-  mesure_timings("Sensor set res : ");
     
   pinMode(OPTICAL_1, INPUT);
   attachInterrupt(0, interruptC1, FALLING);
-  mesure_timings("interruption : ");
   
   pinMode(B_MENU, INPUT_PULLUP);
   pinMode(B_OK,   INPUT_PULLUP);
@@ -202,8 +197,6 @@ void setup() {
   TCCR2A = 0;                      // No pin change on timer compare
   TCCR2B = _BV(CS22) | _BV(CS21) | _BV(CS20);  // prescaler = clk / 1024
   TIMSK2 = _BV(TOIE2);             // overflow interrupt only
-
-  mesure_timings("fin init : ");
 
   display.clearDisplay();
   display.display();
@@ -220,8 +213,7 @@ void loop() {
   
   display.clearDisplay();
   display.setCursor(0, 0);     // Start at top-left corner
-  
-  mesure_timings("############################ : ");
+
   led ^= 1;
   digitalWrite(LED_BUILTIN, led & 0x01);
   
@@ -486,8 +478,8 @@ void loop() {
 
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("03-Fev-25");
-    display.println(" 526c78b");
+    display.println("04-Fev-25");
+    display.println(" e8e213e ");
 
     if (BOK_st > 0 ) {
       restart_boiler();
