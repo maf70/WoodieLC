@@ -503,17 +503,17 @@ void loop() {
 
     display.println("  STATS ");
     // up time since power on
-    if ( uptime / 86400 > 1 ) {
+    if ( uptime / 86400 >= 1 ) {
       display.print(uptime/86400);
       display.print("J ");
       display.print(uptime%86400/3600);
       display.println("h");
-    } else if ( uptime / 3600 > 1 ) {
+    } else if ( uptime / 3600 >= 1 ) {
       display.print(uptime/3600);
       display.print("h ");
       display.print((uptime%3600)/60);
       display.println("mn");
-    } else if ( uptime / 60 > 1 ) {
+    } else if ( uptime / 60 >= 1 ) {
       display.print(uptime/60);
       display.print("mn ");
       display.print(uptime%60);
