@@ -111,10 +111,10 @@ u8 reglage = REGLAGE_NONE;
 int tmp_reglage  = -1;
 u8 reglage_next = 0;
 
-void restart_boiler(void) {
+void restart_boiler(u8 e) {
     // restart boiler !
     mode = MODE_ON;
-    etat = ETAT_REPOS;
+    etat = e;
     reglage = REGLAGE_NONE;
     tmp_reglage = -1;
     t = 0;
@@ -242,17 +242,17 @@ void loop() {
   // 0 refers to the first IC on the wire
   probe_nb = sensors.getDeviceCount();
   if ( probe_nb == 0 ) {
-    mode = MODE_BLOCAGE;
+    mode = MODE_ERREUR;
     error = ERROR_0_PROBE;
     temperature_eau = -1;
     temperature_vis = -1;
   } else if ( probe_nb == 1 ) {
-    mode = MODE_BLOCAGE;
+    mode = MODE_ERREUR;
     error = ERROR_1_PROBE;
     temperature_eau = (int)sensors.getTempCByIndex(0);
     temperature_vis = -1;
   } else if ( probe_nb > 2 ) {
-    mode = MODE_BLOCAGE;
+    mode = MODE_ERREUR;
     error = ERROR_X_PROBE;
     temperature_eau = (int)sensors.getTempCByIndex(0);
     temperature_vis = (int)sensors.getTempCByIndex(1);
@@ -289,6 +289,18 @@ void loop() {
 
   switch( mode ) {
   case MODE_ON:
+
+    // Security check
+    if ( temperature_vis >= temperature_vis_max ) {
+        mode = MODE_ERREUR;
+        error = ERROR_TEMP_VIS;
+        memorise_temperature = temperature_vis;
+      };
+    if ( temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
+        mode = MODE_ERREUR;
+        error = ERROR_TEMP_SECU;
+        memorise_temperature = temperature_eau;
+      };
   
     switch( etat ) {
     case ETAT_REPOS:
@@ -302,10 +314,14 @@ void loop() {
      } else {
        t += 1;
      }
+     display.println("  REPOS ");
      display.println(t, DEC);
      break;
   
+    case ETAT_FORCE_CHAUFFE:
+     display.println("DEMARRAGE");
     case ETAT_CHAUFFE:
+     if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( t == 0 ){
         if (temperature_eau <= temperature_arret) {
           MoteurVis.demarre(tempo_moteur);
@@ -319,7 +335,7 @@ void loop() {
       }
 
       if (blocage >= moteur_blocage_max) {
-        mode = MODE_BLOCAGE;
+        mode = MODE_ERREUR;
         error = ERROR_VIS;
       } else {
         Ventilo.tic(1);
@@ -340,7 +356,7 @@ void loop() {
   
   break;
   
-  case MODE_BLOCAGE:
+  case MODE_ERREUR:
     Ventilo.arret();
     MoteurVis.arret();
     display.println(" ERREUR ");
@@ -359,11 +375,11 @@ void loop() {
         break;
       case ERROR_TEMP_SECU:
         display.print("T eau ");
-        display.println(temperature_eau, DEC);
+        display.println(memorise_temperature, DEC);
         break;
       case ERROR_TEMP_VIS:
         display.print("T vis ");
-        display.println(temperature_vis, DEC);
+        display.println(memorise_temperature, DEC);
         break;
       default:
         display.println("Inconnue");
@@ -371,7 +387,8 @@ void loop() {
     display.print(t);
     
     if (BOK_st > 0 ) {
-      restart_boiler();
+      if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
+      else restart_boiler(ETAT_REPOS);
     }
   break;
   
@@ -469,7 +486,7 @@ void loop() {
         break;
 
       case REGLAGE_END:
-        restart_boiler();
+        restart_boiler(ETAT_REPOS);
         break;
     }
     clear_button();
@@ -504,7 +521,7 @@ void loop() {
   }
 
     if (BOK_st > 0 ) {
-      restart_boiler();
+      restart_boiler(ETAT_REPOS);
     }
   break;
 
@@ -514,7 +531,7 @@ void loop() {
     display.println(" e8e213e ");
 
     if (BOK_st > 0 ) {
-      restart_boiler();
+      restart_boiler(ETAT_REPOS);
     }
   break;
 
@@ -524,7 +541,7 @@ void loop() {
   if (BMENU_st > 0 ) {
     switch( mode ) {
     case MODE_ON:
-    case MODE_BLOCAGE:
+    case MODE_ERREUR:
       mode = MODE_STOP;
       Ventilo.arret();
       MoteurVis.arret();
@@ -540,7 +557,7 @@ void loop() {
       mode = MODE_VERSION;
       break;
     case MODE_VERSION:
-      restart_boiler();
+      restart_boiler(ETAT_REPOS);
       break;
     }  
   } 

@@ -70,16 +70,17 @@
  ********************************************************/
 
 // Boiler state
-#define ETAT_REPOS   0
-#define ETAT_CHAUFFE 1
-
+#define ETAT_REPOS         0
+#define ETAT_CHAUFFE       1
+#define ETAT_FORCE_CHAUFFE 2   // Run even if water temperature too low (needed to 're)start boiler
+ 
 // Boiler mode
 #define MODE_ON      1
 #define MODE_STOP    2
 #define MODE_REGLAGE 3
 #define MODE_STATS   4
 #define MODE_VERSION 5
-#define MODE_BLOCAGE 6
+#define MODE_ERREUR  6
 
 #define BUTTON_VALID   6
 #define BUTTON_DISABLE 20
