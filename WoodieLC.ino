@@ -307,7 +307,7 @@ void loop() {
     switch( etat ) {
     case ETAT_REPOS:
      if (temperature_eau <= temperature_demarrage) {
-       MoteurVis.demarre(tempo_moteur);
+       MoteurVis.demarre(tempo_moteur, 1);
        Ventilo.demarre(tempo_ventilo);
        etat = ETAT_CHAUFFE;
        stat_chauffe_total++;
@@ -327,7 +327,7 @@ void loop() {
      if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( t == 0 ){
         if (temperature_eau <= temperature_arret) {
-          MoteurVis.demarre(tempo_moteur);
+          MoteurVis.demarre(tempo_moteur, 1);
           Ventilo.demarre(tempo_ventilo);
           nb_cycle++;
           stat_cycle_total++;
@@ -403,7 +403,9 @@ void loop() {
     
     if (BDOWN_st > 0 ) {
       MoteurVis.debloque();
-      MoteurVis.demarre(tempo_moteur);
+      MoteurVis.demarre(tempo_moteur, 1);
+    } else if (BUP_st > 0 ) {
+      MoteurVis.demarre(tempo_moteur, 2);
     } else if (BOK_st > 0 ) {
       Ventilo.demarre(tempo_ventilo);
     }

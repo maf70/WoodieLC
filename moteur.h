@@ -10,7 +10,7 @@ class actionneur  {
   void tic(int t);
   
   protected:
-  int pin;
+  u8 pin;
   u8  etat;
   long duree;
 };
@@ -18,7 +18,7 @@ class actionneur  {
 class moteur : public actionneur {
   public:
   moteur(int p, int pi);
-  void demarre(long d );
+  void demarre(long d, u8 s);
   void pause(int p);
   void arret();
   void debloque();
@@ -32,7 +32,8 @@ class moteur : public actionneur {
   u8 moteur_vitesse_min;
   u8 pin_inverse;
   u8 nb_blocage;
-  int tempo;
+  u8 tempo;
+  u8 sens;
 };
 
 #endif

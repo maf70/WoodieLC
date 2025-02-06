@@ -66,13 +66,14 @@ moteur::moteur(int p, int pi) : actionneur (p) {
   digitalWrite(pin_inverse, HIGH); 
   }
 
-void moteur::demarre(long d){
+void moteur::demarre(long d, u8 s ){
   // Demarrage : phase 1, on eteint les 2 sorties
   // on active la sortie normale au prochain tic
   digitalWrite(pin_inverse, HIGH); 
   digitalWrite(pin, HIGH); 
   duree = d;
   etat = 1;
+  sens = s;
   }
 
 void moteur::pause(int p){
@@ -116,8 +117,14 @@ void moteur::tic(int t, int cpt){
       break;
     case 2 :     // demarrage effectif
       etat = 3;  // etat 3 = fonctionnement normal
-        digitalWrite(pin_inverse, HIGH); 
-        digitalWrite(pin, LOW); 
+      if ( sens == 2 ) {
+        // Start inverted
+        digitalWrite(pin_inverse, LOW);
+        digitalWrite(pin, HIGH);
+      } else {
+        digitalWrite(pin_inverse, HIGH);
+        digitalWrite(pin, LOW);
+      }
       break;
     case 3 :    // Fonctionnement normal
         
@@ -142,8 +149,8 @@ void moteur::tic(int t, int cpt){
         nb_blocage++;
         etat = 4;
         tempo = moteur_delai_inversion;
-        digitalWrite(pin_inverse, HIGH); 
-        digitalWrite(pin, HIGH); 
+        digitalWrite(pin_inverse, HIGH);
+        digitalWrite(pin, HIGH);
       }
       break;
     case 4 :    // pause avant inversion
@@ -151,8 +158,14 @@ void moteur::tic(int t, int cpt){
       {
         etat = 5;
         tempo = moteur_duree_inversion;
-        digitalWrite(pin, HIGH); 
-        digitalWrite(pin_inverse, LOW); 
+        if ( sens == 2 ) {
+          // Inverted is inverted => normal operation
+          digitalWrite(pin_inverse, HIGH);
+          digitalWrite(pin, LOW);
+        } else {
+          digitalWrite(pin_inverse, LOW);
+          digitalWrite(pin, HIGH);
+        }
       }
       break;
     case 5 :    // inversion
@@ -166,16 +179,22 @@ void moteur::tic(int t, int cpt){
       {
         etat = 6;
         tempo = moteur_delai_inversion;
-        digitalWrite(pin_inverse, HIGH); 
-        digitalWrite(pin, HIGH); 
+        digitalWrite(pin_inverse, HIGH);
+        digitalWrite(pin, HIGH);
       }
       break;
     case 6 :    // pause avant marche normale
       if (--tempo <= 0)
       {
         etat = 3;
-        digitalWrite(pin_inverse, HIGH); 
-        digitalWrite(pin, LOW); 
+        if ( sens == 2 ) {
+          // Start inverted
+          digitalWrite(pin_inverse, LOW);
+          digitalWrite(pin, HIGH);
+        } else {
+          digitalWrite(pin_inverse, HIGH);
+          digitalWrite(pin, LOW);
+        }
       }
       break;
   }
