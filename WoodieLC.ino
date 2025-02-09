@@ -118,6 +118,7 @@ void restart_boiler(u8 e) {
     mode = MODE_ON;
     etat = e;
     reglage = REGLAGE_NONE;
+    tic = 0;
     tmp_reglage = -1;
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
@@ -312,21 +313,21 @@ void loop() {
        Ventilo.demarre(tempo_ventilo);
        etat = ETAT_CHAUFFE;
        stat_chauffe_total++;
-       stat_repos = t;
-       t = 0;
+       stat_repos = tic;
+       tic = 0;
        nb_cycle = 0;
      } else {
-       t += 1;
+       tic += 1;
      }
      display.println("  REPOS ");
-     display.println(t, DEC);
+     display.println(tic, DEC);
      break;
   
     case ETAT_FORCE_CHAUFFE:
      display.println("DEMARRAGE");
     case ETAT_CHAUFFE:
      if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
-      if ( t == 0 ){
+      if ( tic == 0 ){
         if (temperature_eau <= temperature_arret) {
           MoteurVis.demarre(tempo_moteur, 1);
           Ventilo.demarre(tempo_ventilo);
@@ -346,11 +347,11 @@ void loop() {
         Ventilo.tic(1);
         MoteurVis.tic(1, OpticCount);
 
-        if (++t >= tempo_cycle ) {
-          t = 0; 
+        if (++tic >= tempo_cycle ) {
+          tic = 0;
         }
       }
-      display.print(t, DEC);
+      display.print(tic, DEC);
       display.print(F(" "));
       display.println(nb_cycle, DEC);
     break;
@@ -396,7 +397,7 @@ void loop() {
       default:
         display.println("Inconnue");
     }
-    display.print(t);
+    display.print(tic);
     
     if (BOK_st > 0 ) {
       if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
