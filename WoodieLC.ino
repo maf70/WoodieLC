@@ -356,6 +356,9 @@ void loop() {
     break;
 
     case ETAT_SECU:
+      Ventilo.arret();
+      MoteurVis.arret();
+      display.println(" ERREUR ");
     default:
     break;
     }
