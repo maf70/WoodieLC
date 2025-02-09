@@ -73,6 +73,7 @@
 #define ETAT_REPOS         0
 #define ETAT_CHAUFFE       1
 #define ETAT_FORCE_CHAUFFE 2   // Run even if water temperature too low (needed to 're)start boiler
+#define ETAT_SECU          3   // Do nothing if security problem
  
 // Boiler mode
 #define MODE_ON      1

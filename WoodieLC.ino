@@ -119,7 +119,6 @@ void restart_boiler(u8 e) {
     etat = e;
     reglage = REGLAGE_NONE;
     tmp_reglage = -1;
-    t = 0;
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
   }
@@ -296,11 +295,13 @@ void loop() {
     if ( temperature_vis >= temperature_vis_max ) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_VIS;
+        etat = ETAT_SECU;
         memorise_temperature = temperature_vis;
       };
     if ( temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_SECU;
+        etat = ETAT_SECU;
         memorise_temperature = temperature_eau;
       };
   
@@ -352,6 +353,10 @@ void loop() {
       display.print(t, DEC);
       display.print(F(" "));
       display.println(nb_cycle, DEC);
+    break;
+
+    case ETAT_SECU:
+    default:
     break;
     }
     if ( stat_cycle != 0) display.print(stat_cycle, DEC);
