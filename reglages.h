@@ -5,8 +5,8 @@
  ********************************************************/
 
 // DEFAULT values
-#define TEMPERATURE_DEMARRAGE  30
-#define TEMPERATURE_ARRET      33
+#define TEMPERATURE_DEMARRAGE  54
+#define TEMPERATURE_ARRET      55
 
 #define TEMPO_CYCLE   60      // unite : second
 #define TEMPO_VENTILO 50
@@ -18,7 +18,7 @@
 #define MOTEUR_BLOCAGE_MAX       3
 
 #define TEMP_SECU               27
-#define TEMP_VIS                26
+#define TEMP_VIS                50
 #define PROBE_SELECT             1
 
 // MIN / MAX values
@@ -34,9 +34,9 @@
 #define TEMPO_MOTOR_MIN             2
 #define TEMPO_MOTOR_MAX           100
 #define TEMPO_MOTOR_I_MIN           1
-#define TEMPO_MOTOR_I_MAX           5
+#define TEMPO_MOTOR_I_MAX          10
 
-#define COUNT_MOTOR_C_MIN           5
+#define COUNT_MOTOR_C_MIN           2
 #define COUNT_MOTOR_C_MAX          30
 #define COUNT_MOTOR_B_MIN           1
 #define COUNT_MOTOR_B_MAX          15
