@@ -196,7 +196,7 @@ void setup() {
   //Serial.println(  sensors.getDeviceCount() );
   sensors.setResolution(9);
     
-  pinMode(OPTICAL_1, INPUT);
+  pinMode(OPTICAL_1, INPUT_PULLUP);
   attachInterrupt(0, interruptC1, FALLING);
   
   pinMode(B_MENU, INPUT_PULLUP);
