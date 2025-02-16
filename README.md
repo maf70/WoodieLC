@@ -215,3 +215,38 @@ Liste des erreurs:
 
 
 
+## Annexe 1: adaptation du PCB
+
+2 possibilités: 5V ou 12V:
+
+Avantage du 12V: facilement disponible
+
+Inconvenient du 12V: Dissipation thermique
+- C'est le nano qui fournit le 5V (Ecran, capteur optique, sondes, commutation relais).
+- La commutation d'un relai consomme 60 mA, soit 120 mA qd 2 relais sont actionnés simultanement, soit une disspation thermique de 0.12 * (12-5) = 0.84W
+- Pour la durée de vie du regulateur, il est preferable ds ce cas d'avoir de remplacer les relais 5V par des relais 12V et de brancher la commutation des relais direcement sur l'alimentation 12V.
+
+### Commun
+
+- Relier le 5V et le 3.3
+- Relier les broches du connecteur d'alimentation
+
+Entre le connecteur PiZero et Nano:
+- Cablage des GPIO boutons
+- Cablage des GPIO relais
+- Cablage du bus 1-Wire (Sondes thermique)
+- Cablage capteur optique
+
+L'ecran SSD1306 est cablé sur un bus I2C et il n'y a pas de modification necessaire.
+
+Pour la fixation mecanique, les connecteurs RTC et detection secteurs ont été conservé. Les pistes RTC ont été coupées pour ne pas consommer de courant.
+
+### Alimentation 5V
+![](images/pcb_verso.jpg)
+
+### Alimentation 12V
+
+- Couper piste 5V
+- Relier JD-VCC au 12V
+
+
