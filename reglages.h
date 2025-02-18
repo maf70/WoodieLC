@@ -83,7 +83,7 @@
 #define MODE_VERSION 5
 #define MODE_ERREUR  6
 
-#define BUTTON_VALID   6
+#define BUTTON_VALID   1
 #define BUTTON_DISABLE 20
 
 
