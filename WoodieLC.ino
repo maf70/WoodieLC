@@ -414,6 +414,7 @@ void loop() {
       MoteurVis.debloque();
       MoteurVis.demarre(tempo_moteur, 1);
     } else if (BUP_st > 0 ) {
+      MoteurVis.debloque();
       MoteurVis.demarre(tempo_moteur, 2);
     } else if (BOK_st > 0 ) {
       Ventilo.demarre(tempo_ventilo);
