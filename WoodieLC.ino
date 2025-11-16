@@ -21,10 +21,12 @@ u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
 u8 temperature_secu = TEMP_SECU;
 u8 temperature_vis_max =  TEMP_VIS;
-u8 memorise_temperature =  -2;
+u8 memorise_temperature_eau = 0;
+u8 memorise_temperature_vis = 0;
 u8 probe_select =  PROBE_SELECT;
 u8 probe_nb     =  0;
 u8 error        =  0;
+u8 Compteur_secondes       =  0;
 
 u8 B_disable = 0;
 
@@ -122,6 +124,12 @@ void restart_boiler(u8 e) {
     tmp_reglage = -1;
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
+    temperature_eau_check = 0;
+    temperature_vis_check = 0;
+    temperature_eau = -1;
+    temperature_vis = -1;
+    temperature_error = 0;
+    temperature_error_total = 0;
   }
 
 int affiche_reglage(const char * message, int valeur){
@@ -251,24 +259,41 @@ void loop() {
   } else if ( probe_nb == 1 ) {
     mode = MODE_ERREUR;
     error = ERROR_1_PROBE;
-    temperature_eau = (int)sensors.getTempCByIndex(0);
+    temperature_eau_check = (int)sensors.getTempCByIndex(0);
     temperature_vis = -1;
   } else if ( probe_nb > 2 ) {
     mode = MODE_ERREUR;
     error = ERROR_X_PROBE;
-    temperature_eau = (int)sensors.getTempCByIndex(0);
-    temperature_vis = (int)sensors.getTempCByIndex(1);
+    temperature_eau_check = (int)sensors.getTempCByIndex(0);
+    temperature_vis_check = (int)sensors.getTempCByIndex(1);
   }
   else {
     sensors.requestTemperatures(); // Send the command to get temperatures
 
     if ( probe_select == 1 ) {
-      temperature_eau = (int)sensors.getTempCByIndex(0);
-      temperature_vis = (int)sensors.getTempCByIndex(1);
+      temperature_eau_check = (int)sensors.getTempCByIndex(0);
+      temperature_vis_check = (int)sensors.getTempCByIndex(1);
     } else {
-      temperature_eau = (int)sensors.getTempCByIndex(1);
-      temperature_vis = (int)sensors.getTempCByIndex(0);
+      temperature_eau_check = (int)sensors.getTempCByIndex(1);
+      temperature_vis_check = (int)sensors.getTempCByIndex(0);
     }
+  }
+  
+  if ( temperature_eau_check == -127 ) {
+    temperature_error++;
+    temperature_error_total++;
+  }
+  else temperature_eau = temperature_eau_check;
+  if ( temperature_vis_check == -127 ) {
+    temperature_error++;
+    temperature_error_total++;
+  }
+  else temperature_vis = temperature_vis_check;
+
+  // On accepte une erreur de lecture temperature par minute
+  if (++Compteur_secondes >= 60 ) {
+    if ( temperature_error > 1) temperature_error--;
+    Compteur_secondes = 0;
   }
 
   blocage = MoteurVis.getNB();
@@ -297,17 +322,27 @@ void loop() {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_VIS;
         etat = ETAT_SECU;
-        memorise_temperature = temperature_vis;
+        memorise_temperature_vis = temperature_vis;
+        memorise_temperature_eau = temperature_eau;
       };
     if ( temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_SECU;
         etat = ETAT_SECU;
-        memorise_temperature = temperature_eau;
+        memorise_temperature_vis = temperature_vis;
+        memorise_temperature_eau = temperature_eau;
+      };
+    if ( temperature_error >= 10) {
+        mode = MODE_ERREUR;
+        error = ERROR_TEMP_ERROR;
+        etat = ETAT_SECU;
+        memorise_temperature_vis = temperature_vis;
+        memorise_temperature_eau = temperature_eau;
       };
   
     switch( etat ) {
     case ETAT_REPOS:
+     if ( temperature_error > 1) temperature_error--;
      if (temperature_eau <= temperature_demarrage) {
        MoteurVis.demarre(tempo_moteur, 1);
        Ventilo.demarre(tempo_ventilo);
@@ -320,7 +355,9 @@ void loop() {
        tic += 1;
      }
      display.println("  REPOS ");
-     display.println(tic, DEC);
+     display.print(tic, DEC);
+     display.print(" - ");
+     display.println(temperature_error, DEC);
      break;
   
     case ETAT_FORCE_CHAUFFE:
@@ -328,7 +365,7 @@ void loop() {
     case ETAT_CHAUFFE:
      if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( tic == 0 ){
-        if (temperature_eau <= temperature_arret) {
+        if (temperature_eau < temperature_arret) {
           MoteurVis.demarre(tempo_moteur, 1);
           Ventilo.demarre(tempo_ventilo);
           nb_cycle++;
@@ -353,7 +390,11 @@ void loop() {
       }
       display.print(tic, DEC);
       display.print(F(" "));
-      display.println(nb_cycle, DEC);
+      display.print(nb_cycle, DEC);
+      display.print(" ");
+      display.print(temperature_error, DEC);
+      display.print(" ");
+      display.println(temperature_error_total, DEC);
     break;
 
     case ETAT_SECU:
@@ -387,12 +428,34 @@ void loop() {
         display.println("Moteur");
         break;
       case ERROR_TEMP_SECU:
-        display.print("T eau ");
-        display.println(memorise_temperature, DEC);
+        display.print("Te ");
+        display.print(memorise_temperature_eau, DEC);
+        display.print(" ");
+        display.print(memorise_temperature_vis, DEC);
+        display.print(" ");
+        display.print(temperature_error, DEC);
+        display.print(" ");
+        display.println(temperature_error_total, DEC);
         break;
       case ERROR_TEMP_VIS:
-        display.print("T vis ");
-        display.println(memorise_temperature, DEC);
+        display.print("Tv ");
+        display.print(memorise_temperature_eau, DEC);
+        display.print(" ");
+        display.print(memorise_temperature_vis, DEC);
+        display.print(" ");
+        display.print(temperature_error, DEC);
+        display.print(" ");
+        display.println(temperature_error_total, DEC);
+        break;
+      case ERROR_TEMP_ERROR:
+        display.print("Tr ");
+        display.print(memorise_temperature_eau, DEC);
+        display.print(" ");
+        display.print(memorise_temperature_vis, DEC);
+        display.print(" ");
+        display.print(temperature_error, DEC);
+        display.print(" ");
+        display.println(temperature_error_total, DEC);
         break;
       default:
         display.println("Inconnue");
@@ -537,7 +600,11 @@ void loop() {
   }
     display.print(stat_cycle_total);
     display.print(" ");
-    display.println(stat_chauffe_total);
+    display.print(stat_chauffe_total);
+    display.print(" ");
+    display.print(temperature_error, DEC);
+    display.print(" ");
+    display.println(temperature_error_total, DEC);
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
@@ -546,8 +613,8 @@ void loop() {
 
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("11-Fev-25");
-    display.println(" 2026b55");
+    display.println("16-Nov-25");
+    display.println("  0.11");
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);

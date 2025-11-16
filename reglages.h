@@ -109,6 +109,7 @@
 #define ERROR_VIS         4
 #define ERROR_TEMP_SECU   5
 #define ERROR_TEMP_VIS    6
+#define ERROR_TEMP_ERROR  7
 
 /********************************************************
  * Brochage carte

@@ -12,8 +12,12 @@
 
 #include "moteur.h"
 
+int temperature_eau_check = 0;
+int temperature_vis_check = 0;
 int temperature_eau = -1;
 int temperature_vis = -1;
+int temperature_error = 0;
+int temperature_error_total = 0;
 //long temperature_K   = -300;  // Temperature output variable
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
