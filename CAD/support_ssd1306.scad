@@ -1,6 +1,4 @@
 
-
-
 trou_dia=4.2;
 trou_dis=56;
 

@@ -1,6 +1,4 @@
 
-
-
 // Positionnement des trous du pcb
 trou_dia=2.5;
 trou_dis_g=25;
