@@ -1,4 +1,3 @@
-
 /* Dépendances */
 //#include <SPI.h>
 #include <Wire.h>
@@ -23,8 +22,9 @@ int temperature_error_total = 0;
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
 actionneur Ventilo(RELAIS_VENTILO);
 
-int OpticCount = 0;
-unsigned long OpticStamp =0;
+// CORRECTION : volatile car modifie dans l'interruption interruptC1()
+volatile int OpticCount = 0;
+volatile unsigned long OpticStamp = 0;
 
 int tic = 0;
 u8 led=0;  // clignotement led

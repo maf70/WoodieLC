@@ -1,7 +1,3 @@
-
-
-
-
 #include "reglages.h"
 #include "init.h"
 
@@ -21,24 +17,26 @@ u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
 
 u8 temperature_secu = TEMP_SECU;
 u8 temperature_vis_max =  TEMP_VIS;
-u8 memorise_temperature_eau = 0;
-u8 memorise_temperature_vis = 0;
+// CORRECTION : int au lieu de u8, pour memoriser correctement -1
+int memorise_temperature_eau = 0;
+int memorise_temperature_vis = 0;
 u8 probe_select =  PROBE_SELECT;
 u8 probe_nb     =  0;
 u8 error        =  0;
 u8 Compteur_secondes       =  0;
 
-u8 B_disable = 0;
+// CORRECTION : volatile car ecrits dans l'ISR du Timer2, lus dans loop()
+volatile u8 B_disable = 0;
 
-u8 BOK_cpt   = 0;
-u8 BMENU_cpt = 0;
-u8 BUP_cpt   = 0;
-u8 BDOWN_cpt = 0;
+volatile u8 BOK_cpt   = 0;
+volatile u8 BMENU_cpt = 0;
+volatile u8 BUP_cpt   = 0;
+volatile u8 BDOWN_cpt = 0;
 
-u8 BOK_st   = 0;
-u8 BMENU_st = 0;
-u8 BUP_st   = 0;
-u8 BDOWN_st = 0;
+volatile u8 BOK_st   = 0;
+volatile u8 BMENU_st = 0;
+volatile u8 BUP_st   = 0;
+volatile u8 BDOWN_st = 0;
 
 void interruptC1()
 {
@@ -132,19 +130,14 @@ void restart_boiler(u8 e) {
     temperature_error_total = 0;
   }
 
-int affiche_reglage(const char * message, int valeur){
+// CORRECTION : type de retour void (les fonctions int sans return sont un comportement indefini)
+void affiche_reglage(const char * message, int valeur){
   display.print(message);
   display.println(": ");
   display.print(valeur);
 }
 
-int affiche_Chaudiere(const char * message){
-  display.println(message);
-}
-
-int affiche_arret(const char * message, int valeur){
-  display.println("  ARRET");
-}
+// CORRECTION : affiche_Chaudiere et affiche_arret supprimees (code mort jamais appele)
 
 void exit_reglage(void){
     mode = MODE_STATS;
@@ -205,7 +198,8 @@ void setup() {
   sensors.setResolution(9);
     
   pinMode(OPTICAL_1, INPUT_PULLUP);
-  attachInterrupt(0, interruptC1, FALLING);
+  // CORRECTION : digitalPinToInterrupt au lieu du numero d'interruption en dur
+  attachInterrupt(digitalPinToInterrupt(OPTICAL_1), interruptC1, FALLING);
   
   pinMode(B_MENU, INPUT_PULLUP);
   pinMode(B_OK,   INPUT_PULLUP);
@@ -248,6 +242,15 @@ void loop() {
   led ^= 1;
   digitalWrite(LED_BUILTIN, led & 0x01);
   
+  // CORRECTION : lecture atomique du compteur optique.
+  // OpticCount (int 16 bits) est modifie par l'interruption : on copie
+  // et on remet a zero interruptions coupees, puis on travaille sur la copie.
+  int optic_seconde;
+  noInterrupts();
+  optic_seconde = OpticCount;
+  OpticCount = 0;
+  interrupts();
+  
   // You can have more than one IC on the same bus.
   // 0 refers to the first IC on the wire
   probe_nb = sensors.getDeviceCount();
@@ -256,26 +259,30 @@ void loop() {
     error = ERROR_0_PROBE;
     temperature_eau = -1;
     temperature_vis = -1;
-  } else if ( probe_nb == 1 ) {
-    mode = MODE_ERREUR;
-    error = ERROR_1_PROBE;
-    temperature_eau_check = (int)sensors.getTempCByIndex(0);
-    temperature_vis = -1;
-  } else if ( probe_nb > 2 ) {
-    mode = MODE_ERREUR;
-    error = ERROR_X_PROBE;
-    temperature_eau_check = (int)sensors.getTempCByIndex(0);
-    temperature_vis_check = (int)sensors.getTempCByIndex(1);
-  }
-  else {
+  } else {
+    // CORRECTION : conversion demandee aussi en cas d'anomalie sonde,
+    // sinon getTempCByIndex() relit un scratchpad perime
     sensors.requestTemperatures(); // Send the command to get temperatures
 
-    if ( probe_select == 1 ) {
+    if ( probe_nb == 1 ) {
+      mode = MODE_ERREUR;
+      error = ERROR_1_PROBE;
+      temperature_eau_check = (int)sensors.getTempCByIndex(0);
+      temperature_vis = -1;
+    } else if ( probe_nb > 2 ) {
+      mode = MODE_ERREUR;
+      error = ERROR_X_PROBE;
       temperature_eau_check = (int)sensors.getTempCByIndex(0);
       temperature_vis_check = (int)sensors.getTempCByIndex(1);
-    } else {
-      temperature_eau_check = (int)sensors.getTempCByIndex(1);
-      temperature_vis_check = (int)sensors.getTempCByIndex(0);
+    }
+    else {
+      if ( probe_select == 1 ) {
+        temperature_eau_check = (int)sensors.getTempCByIndex(0);
+        temperature_vis_check = (int)sensors.getTempCByIndex(1);
+      } else {
+        temperature_eau_check = (int)sensors.getTempCByIndex(1);
+        temperature_vis_check = (int)sensors.getTempCByIndex(0);
+      }
     }
   }
   
@@ -308,7 +315,7 @@ void loop() {
   display.print(temperature_eau, DEC);
   display.print(F(" "));
   //display.println(temperature_K);
-  display.print(OpticCount, DEC);
+  display.print(optic_seconde, DEC);
   display.print(F(" "));
   display.print(blocage, DEC);
   display.print(F(" "));
@@ -324,21 +331,21 @@ void loop() {
         etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
-      };
+      }
     if ( temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_SECU;
         etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
-      };
+      }
     if ( temperature_error >= 10) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_ERROR;
         etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
-      };
+      }
   
     switch( etat ) {
     case ETAT_REPOS:
@@ -362,6 +369,7 @@ void loop() {
   
     case ETAT_FORCE_CHAUFFE:
      display.println("DEMARRAGE");
+     // fallthrough voulu : le mode force enchaine sur la logique de chauffe
     case ETAT_CHAUFFE:
      if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( tic == 0 ){
@@ -380,9 +388,13 @@ void loop() {
       if (blocage >= moteur_blocage_max) {
         mode = MODE_ERREUR;
         error = ERROR_VIS;
+        // CORRECTION : arret immediat des actionneurs, sans attendre
+        // le tour de boucle suivant en MODE_ERREUR
+        Ventilo.arret();
+        MoteurVis.arret();
       } else {
         Ventilo.tic(1);
-        MoteurVis.tic(1, OpticCount);
+        MoteurVis.tic(1, optic_seconde);
 
         if (++tic >= tempo_cycle ) {
           tic = 0;
@@ -484,7 +496,7 @@ void loop() {
     }
 
     Ventilo.tic(1);
-    MoteurVis.tic(1, OpticCount);
+    MoteurVis.tic(1, optic_seconde);
 
   break;
   
@@ -497,6 +509,7 @@ void loop() {
       case REGLAGE_INIT:
         reglage = REGLAGE_TEMP_START;
         tmp_reglage = temperature_demarrage;
+        // fallthrough voulu
 
       case REGLAGE_TEMP_START:
         SET_PARAM( TEMP_START , temperature_demarrage, "T Start", TEMPERATURE_DEMARRAGE_MIN, TEMPERATURE_DEMARRAGE_MAX);
@@ -613,8 +626,8 @@ void loop() {
 
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("16-Nov-25");
-    display.println("  0.11");
+    display.println("11-Nov-26");
+    display.println("  0.12");
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
@@ -653,7 +666,6 @@ void loop() {
  // mesure_timings("Gestion chaudiere : ");
   //mesure_timings("lcd refresh : ");
 
-  OpticCount = 0;
   display.display();
   
   t_loop_fin = millis();
@@ -662,7 +674,11 @@ void loop() {
   // protect against millis overflow
   if (t_loop_fin < t_loop_debut) t_loop_delai = 0;
 
-  
+  // CORRECTION : si le tour de boucle a dure plus d'une seconde, on borne
+  // le delai, sinon delay() recevrait un unsigned long enorme et la carte
+  // se figerait pendant ~49 jours
+  if (t_loop_delai > 1000) t_loop_delai = 1000;
+
   /* Rafraichissement une fois par seconde */ 
   delay(1000-t_loop_delai); 
   

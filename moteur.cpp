@@ -1,5 +1,3 @@
-
-
 #if ARDUINO >= 100
 #include "Arduino.h"
 #else
@@ -77,14 +75,18 @@ void moteur::demarre(long d, u8 s ){
   }
 
 void moteur::pause(int p){
-  // Ne pas utiliser en l'etat
+  // CORRECTION : on coupe TOUJOURS les 2 sorties avant tout changement.
+  // L'ancienne version ne touchait pas pin_inverse : appelee pendant une
+  // inversion, elle activait les 2 relais simultanement (motor en court-circuit).
   if(p)
   {
+  digitalWrite(pin_inverse, HIGH);
   digitalWrite(pin, HIGH);
   etat = 10;
   }
   else
   {
+  digitalWrite(pin_inverse, HIGH);
   digitalWrite(pin, LOW);
   etat = 1;
   }
@@ -93,7 +95,7 @@ void moteur::pause(int p){
 void moteur::arret(){
   digitalWrite(pin, HIGH); 
   digitalWrite(pin_inverse, HIGH); 
-  etat = 0;
+  etat = 0; 
   }
 
 void moteur::debloque(){
@@ -146,7 +148,7 @@ void moteur::tic(int t, int cpt){
       else if (cpt < moteur_vitesse_min)
       {
         // Blocage !
-        nb_blocage++;
+        if (nb_blocage < 255) nb_blocage++;
         etat = 4;
         tempo = moteur_delai_inversion;
         digitalWrite(pin_inverse, HIGH);
@@ -172,7 +174,7 @@ void moteur::tic(int t, int cpt){
       if (cpt < moteur_vitesse_min)
       {
         // Blocage !
-        nb_blocage++;
+        if (nb_blocage < 255) nb_blocage++;
         tempo = 1;
       }
       if (--tempo <= 0)

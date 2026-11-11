@@ -1,6 +1,8 @@
 #ifndef __MOTEUR__H__
 #define __MOTEUR__H__
 
+typedef unsigned char u8;
+
 class actionneur  {
   public:
   actionneur(int p);
