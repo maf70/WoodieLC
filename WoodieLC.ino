@@ -113,10 +113,8 @@ void restart_boiler(u8 e) {
     tmp_reglage = -1;
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
-    temperature_eau_check = 0;
-    temperature_vis_check = 0;
-    temperature_eau = -1;
-    temperature_vis = -1;
+    temperature_eau = -127;
+    temperature_vis = -127;
     temperature_error_eau = 0;
     temperature_error_vis = 0;
     temperature_error_same = 0;
@@ -274,48 +272,45 @@ void loop() {
     if ( probe_nb == 1 ) {
       mode = MODE_ERREUR;
       error = ERROR_1_PROBE;
-      temperature_eau_check = (int)sensors.getTempCByIndex(0);
+      temperature_eau = (int)sensors.getTempCByIndex(0);
       temperature_vis = -1;
     } else if ( probe_nb > 2 ) {
       mode = MODE_ERREUR;
       error = ERROR_X_PROBE;
       if ( probe_select == 1 ) {
-        temperature_eau_check = (int)sensors.getTempCByIndex(0);
-        temperature_vis_check = (int)sensors.getTempCByIndex(1);
+        temperature_eau = (int)sensors.getTempCByIndex(0);
+        temperature_vis = (int)sensors.getTempCByIndex(1);
       } else {
-        temperature_eau_check = (int)sensors.getTempCByIndex(1);
-        temperature_vis_check = (int)sensors.getTempCByIndex(0);
+        temperature_eau = (int)sensors.getTempCByIndex(1);
+        temperature_vis = (int)sensors.getTempCByIndex(0);
       }
     }
     else {
       if ( probe_select == 1 ) {
-        temperature_eau_check = (int)sensors.getTempCByIndex(0);
-        temperature_vis_check = (int)sensors.getTempCByIndex(1);
+        temperature_eau = (int)sensors.getTempCByIndex(0);
+        temperature_vis = (int)sensors.getTempCByIndex(1);
       } else {
-        temperature_eau_check = (int)sensors.getTempCByIndex(1);
-        temperature_vis_check = (int)sensors.getTempCByIndex(0);
+        temperature_eau = (int)sensors.getTempCByIndex(1);
+        temperature_vis = (int)sensors.getTempCByIndex(0);
       }
     }
   }
   
-  if ( temperature_eau_check == -127 ) {
+  // Robustify temperature read
+  if ( temperature_eau == -127 ) {
     temperature_error_eau++;
     temperature_error_eau_total++;
-    temperature_eau = -1;  // Force la valeur à -1 au lieu de garder l'ancienne
   }
-  else temperature_eau = temperature_eau_check;
-  if ( temperature_vis_check == -127 ) {
+  if ( temperature_vis == -127 ) {
     temperature_error_vis++;
     temperature_error_vis_total++;
-    temperature_vis = -1;  // Force la valeur à -1 au lieu de garder l'ancienne
   }
-  else if ( temperature_vis_check == temperature_eau_check ) {
+  else if ( temperature_vis == temperature_eau ) {
     // Should not occurs, don't take it in account
     temperature_error_same++;
     temperature_error_same_total++;
-    temperature_vis = -1;  // Force la valeur à -1 au lieu de garder l'ancienne
+    temperature_vis = -127;  // Force la valeur à -1 au lieu de garder l'ancienne
   }
-  else temperature_vis = temperature_vis_check;
 
   // On accepte une erreur de lecture temperature par minute
   if (++Compteur_secondes >= 60 ) {
@@ -347,14 +342,14 @@ void loop() {
   case MODE_ON:
 
     // Security check
-    if ( temperature_eau > -1 && temperature_vis >= temperature_vis_max ) {
+    if ( temperature_vis > -20 && temperature_vis >= temperature_vis_max ) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_VIS;
         etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
       }
-    if ( temperature_eau > -1 && temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
+    if ( temperature_eau > -20 && temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_SECU;
         etat = ETAT_SECU;
@@ -371,7 +366,7 @@ void loop() {
   
     switch( etat ) {
     case ETAT_REPOS:
-     if (temperature_eau > -1 && temperature_eau <= temperature_demarrage) {
+     if (temperature_eau > -20 && temperature_eau <= temperature_demarrage) {
        MoteurVis.demarre(tempo_moteur, 1);
        Ventilo.demarre(tempo_ventilo);
        etat = ETAT_CHAUFFE;
@@ -393,7 +388,7 @@ void loop() {
     case ETAT_CHAUFFE:
      if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( tic == 0 ){
-        if (temperature_eau > -1 && temperature_eau < temperature_arret) {
+        if (temperature_eau > -20 && temperature_eau < temperature_arret) {
           MoteurVis.demarre(tempo_moteur, 1);
           Ventilo.demarre(tempo_ventilo);
           nb_cycle++;

@@ -11,10 +11,8 @@
 
 #include "moteur.h"
 
-int temperature_eau_check = 0;
-int temperature_vis_check = 0;
-int temperature_eau = -1;
-int temperature_vis = -1;
+int temperature_eau = -127;
+int temperature_vis = -127;
 int temperature_error_eau = 0;
 int temperature_error_eau_total = 0;
 int temperature_error_vis = 0;
