@@ -28,15 +28,14 @@ u8 Compteur_secondes       =  0;
 // CORRECTION : volatile car ecrits dans l'ISR du Timer2, lus dans loop()
 volatile u8 B_disable = 0;
 
-volatile u8 BOK_cpt   = 0;
-volatile u8 BMENU_cpt = 0;
-volatile u8 BUP_cpt   = 0;
-volatile u8 BDOWN_cpt = 0;
-
+// >>> NOUVELLES VARIABLES POUR DEBOUNCE <<<
 volatile u8 BOK_st   = 0;
 volatile u8 BMENU_st = 0;
 volatile u8 BUP_st   = 0;
 volatile u8 BDOWN_st = 0;
+volatile uint8_t B_last[4] = {HIGH, HIGH, HIGH, HIGH};    // États précédents (0:MENU, 1:OK, 2:UP, 3:DOWN)
+volatile uint8_t B_debounce_cpt[4] = {0};                 // Compteurs de stabilité
+#define DEBOUNCE_THRESHOLD 3                               // 3 cycles = ~48ms (1 appel ISR = ~16ms avec prescaler 1024)
 
 void interruptC1()
 {
@@ -53,45 +52,37 @@ ISR( TIMER2_OVF_vect )
     B_disable--;
     return;
   }
-  
-  if ( BMENU_st + BOK_st + BUP_st + BDOWN_st < 1) {
 
-    if (digitalRead(B_MENU) == 0)
-    {
-      if( ++BMENU_cpt > BUTTON_VALID) { BMENU_st = 1; BMENU_cpt = 0;}
-      BOK_cpt   = 0;
-      BUP_cpt   = 0;
-      BDOWN_cpt = 0;
+  // Lit les états actuels des boutons (avec pull-up: LOW = appuyé)
+  uint8_t B_current[4] = {
+    digitalRead(B_MENU),
+    digitalRead(B_OK),
+    digitalRead(B_UP),
+    digitalRead(B_DOWN)
+  };
+
+  // Gère chaque bouton avec debounce
+  for (uint8_t i = 0; i < 4; i++) {
+    // Si l'état a changé, réinitialise le compteur de stabilité
+    if (B_current[i] != B_last[i]) {
+      B_debounce_cpt[i] = 0;
+      B_last[i] = B_current[i];
     }
-    else if (digitalRead(B_OK) == 0)
-    {
-      BMENU_cpt = 0;
-      if( ++BOK_cpt > BUTTON_VALID) { BOK_st = 1; BOK_cpt = 0;}
-      BUP_cpt   = 0;
-      BDOWN_cpt = 0;
+    // Sinon, incrémente le compteur
+    else if (B_debounce_cpt[i] < DEBOUNCE_THRESHOLD) {
+      B_debounce_cpt[i]++;
     }
-    else if (digitalRead(B_UP) == 0)
-    {
-      BMENU_cpt = 0;
-      BOK_cpt   = 0;
-      if( ++BUP_cpt > BUTTON_VALID) { BUP_st = 1; BUP_cpt = 0;}
-      BDOWN_cpt = 0;
+
+    // Détection d'un appui VALIDE (front descendant + stabilité)
+    if (B_current[i] == LOW && B_debounce_cpt[i] >= DEBOUNCE_THRESHOLD) {
+      switch (i) {
+        case 0: if (BMENU_st == 0) { BMENU_st = 1; B_disable = BUTTON_DISABLE; } break;
+        case 1: if (BOK_st   == 0) { BOK_st   = 1; B_disable = BUTTON_DISABLE; } break;
+        case 2: if (BUP_st   == 0) { BUP_st   = 1; B_disable = BUTTON_DISABLE; } break;
+        case 3: if (BDOWN_st == 0) { BDOWN_st = 1; B_disable = BUTTON_DISABLE; } break;
+      }
     }
-    else if (digitalRead(B_DOWN) == 0)
-    {
-      BMENU_cpt = 0;
-      BOK_cpt   = 0;
-      BUP_cpt   = 0;
-      if( ++BDOWN_cpt > BUTTON_VALID) { BDOWN_st = 1; BDOWN_cpt = 0;}
-    }
-    else
-    {
-      BMENU_cpt = 0;
-      BOK_cpt   = 0;
-      BUP_cpt   = 0;
-      BDOWN_cpt = 0;
-    }
-   }
+  }
 }
 
 void clear_button(void) {
@@ -143,32 +134,31 @@ void exit_reglage(void){
     mode = MODE_STATS;
 }
 
+// CORRECTION DES MACROS : syntaxe standard C++ (pas de \n, backslash uniquement pour continuation de ligne)
 #define SET_PARAM( param , value, message, pmin, pmax)  \
-        if      (BUP_st   > 0 ) { tmp_reglage++; }\
-        else if (BDOWN_st > 0 ) { tmp_reglage--; }\
+        if      (BUP_st   > 0 ) { tmp_reglage++; } \
+        else if (BDOWN_st > 0 ) { tmp_reglage--; } \
         else if (BOK_st   > 0 ) { value = tmp_reglage; \
                                   reglage_next = 1; \
-                                  }\
-        else if (BMENU_st > 0 ) { exit_reglage(); }\
-\
-        if ( pmin > tmp_reglage ) { tmp_reglage = pmin; }\
-        else if (pmax < tmp_reglage ) { tmp_reglage = pmax; }\
-\
+                                } \
+        else if (BMENU_st > 0 ) { exit_reglage(); } \
+        if ( pmin > tmp_reglage ) { tmp_reglage = pmin; } \
+        else if (pmax < tmp_reglage ) { tmp_reglage = pmax; } \
         affiche_reglage(message, tmp_reglage);
         
 #define SET_NEXT_REGLAGE( pnext, snext)  \
         if (reglage_next == 1) { \
-          tmp_reglage = pnext;\
-          reglage = snext;\
+          tmp_reglage = pnext; \
+          reglage = snext; \
           reglage_next = 0; \
         }
 
 #define READ_REGLAGE( value, address, vmin, vmax, vdefaut)  \
-        value = EEPROM.read(address);\
-        if (value < vmin || value > vmax) { value = vdefaut;};
+        value = EEPROM.read(address); \
+        if (value < vmin || value > vmax) { value = vdefaut; }
 
 #define SAVE_REGLAGE( value, address)  \
-        EEPROM.update(address, value);\
+        EEPROM.update(address, value);
 
 void setup() {
   //Serial.begin(115200);
@@ -542,7 +532,7 @@ void loop() {
         break;
 
       case REGLAGE_MOTOR_INV:
-        SET_PARAM( MOTOR INV , moteur_duree_inversion, "Invers.", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
+        SET_PARAM( MOTOR_INV , moteur_duree_inversion, "Invers.", TEMPO_MOTOR_I_MIN, TEMPO_MOTOR_I_MAX);
         SAVE_REGLAGE( moteur_duree_inversion, EEPROM_MOTEUR_DUREE_INVERSION);
         SET_NEXT_REGLAGE (moteur_vitesse_min, REGLAGE_MOTOR_COUNT);
         break;
