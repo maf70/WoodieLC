@@ -15,8 +15,12 @@ int temperature_eau_check = 0;
 int temperature_vis_check = 0;
 int temperature_eau = -1;
 int temperature_vis = -1;
-int temperature_error = 0;
-int temperature_error_total = 0;
+int temperature_error_eau = 0;
+int temperature_error_eau_total = 0;
+int temperature_error_vis = 0;
+int temperature_error_vis_total = 0;
+int temperature_error_same = 0;
+int temperature_error_same_total = 0;
 //long temperature_K   = -300;  // Temperature output variable
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
