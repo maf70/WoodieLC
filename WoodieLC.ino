@@ -247,8 +247,7 @@ void loop() {
   display.clearDisplay();
   display.setCursor(0, 0);     // Start at top-left corner
 
-  led ^= 1;
-  digitalWrite(LED_BUILTIN, led & 0x01);
+  digitalWrite(LED_BUILTIN, 1);
   
   // CORRECTION : lecture atomique du compteur optique.
   // OpticCount (int 16 bits) est modifie par l'interruption : on copie
@@ -668,6 +667,8 @@ void loop() {
   //mesure_timings("lcd refresh : ");
 
   display.display();
+
+  digitalWrite(LED_BUILTIN, 0 );
   
   t_loop_fin = millis();
   t_loop_delai = t_loop_fin - t_loop_debut;

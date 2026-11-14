@@ -31,7 +31,6 @@ volatile int OpticCount = 0;
 volatile unsigned long OpticStamp = 0;
 
 int tic = 0;
-u8 led=0;  // clignotement led
 u8 etat = ETAT_REPOS;   // etat repos
 u8 mode = MODE_ON;  // Start boiler
 
