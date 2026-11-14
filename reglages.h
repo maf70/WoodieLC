@@ -8,8 +8,8 @@
 #define TEMPERATURE_DEMARRAGE  54
 #define TEMPERATURE_ARRET      55
 
-#define TEMPO_CYCLE   60      // unite : second
-#define TEMPO_VENTILO 50
+#define TEMPO_CYCLE   240      // unite : second
+#define TEMPO_VENTILO 220
 #define TEMPO_MOTEUR   10
 
 #define MOTEUR_DELAI_INVERSION   2
@@ -23,14 +23,14 @@
 
 // MIN / MAX values
 #define TEMPERATURE_DEMARRAGE_MIN  28
-#define TEMPERATURE_DEMARRAGE_MAX  65
+#define TEMPERATURE_DEMARRAGE_MAX  70
 #define TEMPERATURE_ARRET_MIN      33
-#define TEMPERATURE_ARRET_MAX      66
+#define TEMPERATURE_ARRET_MAX      71
 
 #define TEMPO_CYCLE_MIN            30
-#define TEMPO_CYCLE_MAX           254
-#define TEMPO_VENTILO_MIN           2
-#define TEMPO_VENTILO_MAX         254
+#define TEMPO_CYCLE_MAX           999
+#define TEMPO_VENTILO_MIN          20
+#define TEMPO_VENTILO_MAX         999
 #define TEMPO_MOTOR_MIN             2
 #define TEMPO_MOTOR_MAX           100
 #define TEMPO_MOTOR_I_MIN           1
@@ -54,16 +54,16 @@
 #define EEPROM_TEMPERATURE_ARRET       1
 
 #define EEPROM_TEMPO_CYCLE             2
-#define EEPROM_TEMPO_VENTILO           3
-#define EEPROM_TEMPO_MOTEUR            4
+#define EEPROM_TEMPO_VENTILO           4
+#define EEPROM_TEMPO_MOTEUR            6
 
-#define EEPROM_MOTEUR_DUREE_INVERSION  5
-#define EEPROM_MOTEUR_VITESSE_MIN      6
-#define EEPROM_MOTEUR_BLOCAGE_MAX      7
+#define EEPROM_MOTEUR_DUREE_INVERSION  7
+#define EEPROM_MOTEUR_VITESSE_MIN      8
+#define EEPROM_MOTEUR_BLOCAGE_MAX      9
 
-#define EEPROM_TEMP_SECU               8
-#define EEPROM_TEMP_VIS                9
-#define EEPROM_PROBE_SELECT           10
+#define EEPROM_TEMP_SECU              10
+#define EEPROM_TEMP_VIS               11
+#define EEPROM_PROBE_SELECT           12
 
 /********************************************************
  * Defines

@@ -6,8 +6,8 @@
 u8 temperature_demarrage = TEMPERATURE_DEMARRAGE;
 u8 temperature_arret     = TEMPERATURE_ARRET;
 
-u8 tempo_cycle   = TEMPO_CYCLE;
-u8 tempo_ventilo = TEMPO_VENTILO;
+uint16_t tempo_cycle   = TEMPO_CYCLE;
+uint16_t tempo_ventilo = TEMPO_VENTILO;
 u8 tempo_moteur  = TEMPO_MOTEUR;
 
 u8 moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
@@ -170,11 +170,11 @@ void exit_reglage(void){
         }
 
 #define READ_REGLAGE( value, address, vmin, vmax, vdefaut)  \
-        value = EEPROM.read(address); \
+        EEPROM.get(address, value); \
         if (value < vmin || value > vmax) { value = vdefaut; }
 
 #define SAVE_REGLAGE( value, address)  \
-        EEPROM.update(address, value);
+        EEPROM.put(address, value);
 
 void setup() {
   //Serial.begin(115200);
