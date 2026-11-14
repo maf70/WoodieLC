@@ -76,16 +76,18 @@
 #define ETAT_SECU          3   // Do nothing if security problem
  
 // Boiler mode
-#define MODE_ON      1
-#define MODE_STOP    2
-#define MODE_REGLAGE 3
-#define MODE_STATS   4
-#define MODE_VERSION 5
-#define MODE_ERREUR  6
+#define MODE_ON        1
+#define MODE_STOP      2
+#define MODE_REGLAGE   3
+#define MODE_STATS     4
+#define MODE_VERSION   5
+#define MODE_ERREUR    6
+#define MODE_POWER_ON  7
+
+#define VERSION_TEMPO  3
 
 #define BUTTON_VALID   1
 #define BUTTON_DISABLE 20
-
 
 // Setting state
 #define REGLAGE_NONE          0

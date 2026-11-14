@@ -30,7 +30,7 @@ volatile unsigned long OpticStamp = 0;
 
 int tic = 0;
 u8 etat = ETAT_REPOS;   // etat repos
-u8 mode = MODE_ON;  // Start boiler
+u8 mode = MODE_POWER_ON;  // Start boiler after version display
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 

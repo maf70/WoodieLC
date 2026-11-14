@@ -24,6 +24,7 @@ u8 probe_select =  PROBE_SELECT;
 u8 probe_nb     =  0;
 u8 error        =  0;
 u8 Compteur_secondes       =  0;
+u8 version_display =  VERSION_TEMPO;
 
 // CORRECTION : volatile car ecrits dans l'ISR du Timer2, lus dans loop()
 volatile u8 B_disable = 0;
@@ -111,6 +112,7 @@ void restart_boiler(u8 e) {
     reglage = REGLAGE_NONE;
     tic = 0;
     tmp_reglage = -1;
+    version_display = VERSION_TEMPO;  // Stay in version mode if no power on state
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
     temperature_eau = -127;
@@ -234,8 +236,8 @@ void setup() {
 
   MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
 
-  // Start in boiler mode
-  mode = MODE_ON;
+  // Display version state then start
+  mode = MODE_POWER_ON;
 }
 
 
@@ -619,12 +621,14 @@ void loop() {
     }
   break;
 
+  case MODE_POWER_ON:
+    if (version_display > 0) version_display--;
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("11-Nov-26");
+    display.println("14-Nov-26");
     display.println("  0.12");
 
-    if (BOK_st > 0 ) {
+    if (BOK_st > 0 || version_display == 0) {
       restart_boiler(ETAT_REPOS);
     }
   break;
