@@ -25,6 +25,7 @@ u8 probe_nb     =  0;
 u8 error        =  0;
 u8 Compteur_secondes       =  0;
 u8 version_display =  VERSION_TEMPO;
+u8 boiler_screen   =  BOILER_SCREEN_DEFAULT;
 
 // CORRECTION : volatile car ecrits dans l'ISR du Timer2, lus dans loop()
 volatile u8 B_disable = 0;
@@ -113,6 +114,7 @@ void restart_boiler(u8 e) {
     tic = 0;
     tmp_reglage = -1;
     version_display = VERSION_TEMPO;  // Stay in version mode if no power on state
+    boiler_screen = BOILER_SCREEN_DEFAULT;
     MoteurVis.parametres( moteur_delai_inversion, moteur_duree_inversion, moteur_vitesse_min);
     MoteurVis.debloque();
     temperature_eau = -127;
@@ -136,6 +138,96 @@ void affiche_reglage(const char * message, int valeur){
   display.print(message);
   display.println(": ");
   display.print(valeur);
+}
+
+void affiche_date(const u8 detail)
+{
+    long int uptime=millis()/1000 + millis_overflow * 4294967296;
+
+    // up time since power on
+  if ( uptime / 86400 >= 1 ) {
+    display.print(uptime/86400);
+    display.print("J ");
+    if ( detail) {
+      display.print(uptime%86400/3600);
+      display.println("h ");
+    }
+  } else if ( uptime / 3600 >= 1 ) {
+    display.print(uptime/3600);
+    display.print("h ");
+    if ( detail) {
+      display.print((uptime%3600)/60);
+      display.println("mn ");
+    }
+  } else if ( uptime / 60 >= 1 ) {
+    display.print(uptime/60);
+    display.print("mn ");
+    if ( detail) {
+      display.print(uptime%60);
+      display.println("s ");
+    }
+  } else {
+    display.print(uptime%60);
+    display.print("s ");
+  }
+  display.print(millis_overflow);
+  display.print(" ");
+}
+
+void affiche_boiler(const u8 etat, const u8 screen){
+  switch ( etat) {
+    case ETAT_REPOS:
+      display.println("  REPOS");
+    break;;
+    case ETAT_FORCE_CHAUFFE:
+      display.println("DEMARRAGE");
+    break;;
+    case ETAT_CHAUFFE:
+      display.println(" CHAUFFE");
+    break;;
+    default:
+      display.println("  UNDEF");
+  }
+  if (screen == BOILER_SCREEN_DEBUG ) display.setTextSize(1);      // 1:2 pixel scale
+  display.print(tic, DEC);
+  display.print(" ");
+  display.print(nb_cycle, DEC);
+  display.print(" ");
+  if (screen == BOILER_SCREEN_DEBUG ) {
+    display.println("");
+    display.print(temperature_error_eau_total , DEC);
+    display.print(" ");
+    display.print(temperature_error_vis_total , DEC);
+    display.print(" ");
+    display.print(temperature_error_same_total , DEC);
+    display.print("  ");
+    display.print(sonde_error_0_total , DEC);
+    display.print(" ");
+    display.print(sonde_error_1_total , DEC);
+    display.print(" ");
+    display.println(sonde_error_X_total , DEC);
+  }
+  else
+  {
+    display.println(temperature_error_eau_total + temperature_error_vis_total \
+                  + temperature_error_same_total + sonde_error_0_total        \
+                  + sonde_error_1_total + sonde_error_X_total, DEC);
+  }
+  if (screen == BOILER_SCREEN_DEBUG ) {
+    display.print(stat_cycle_total, DEC);
+    display.print(" ");
+    display.print(stat_chauffe_total, DEC);
+    display.print(" ");
+  }
+  display.print(stat_cycle, DEC);
+  display.print(" ");
+  display.println(stat_repos, DEC);
+  if (screen == BOILER_SCREEN_DEBUG ) {
+    display.print(VERSION_NB);
+    display.print(" ");
+    affiche_date(1);
+  }
+
 }
 
 void affiche_secu(const char * secu){
@@ -421,16 +513,11 @@ void loop() {
      } else {
        tic += 1;
      }
-     display.println("  REPOS ");
-     display.print(tic, DEC);
-     affiche_error("");
      break;
   
     case ETAT_FORCE_CHAUFFE:
-     display.println("DEMARRAGE");
      // fallthrough voulu : le mode force enchaine sur la logique de chauffe
     case ETAT_CHAUFFE:
-     if ( etat != ETAT_FORCE_CHAUFFE) display.println(" CHAUFFE");
       if ( tic == 0 ){
         if (temperature_eau > -20 && temperature_eau < temperature_arret) {
           MoteurVis.demarre(tempo_moteur, 1);
@@ -459,18 +546,16 @@ void loop() {
           tic = 0;
         }
       }
-      display.print(tic, DEC);
-      display.print(F(" "));
-      display.print(nb_cycle, DEC);
-      affiche_error("");
     break;
 
     default:
     break;
     }
-    //if ( stat_cycle != 0) display.print(stat_cycle, DEC);
-    //display.print(" ");
-    //if ( stat_repos != 0) display.print(stat_repos, DEC);
+
+    if (BUP_st > 0 ) { boiler_screen = BOILER_SCREEN_DEFAULT ; }
+    else if (BDOWN_st > 0 ) { boiler_screen = BOILER_SCREEN_DEBUG ; };
+
+    affiche_boiler(etat, boiler_screen);
   
   break;
 
@@ -642,38 +727,12 @@ void loop() {
   break;
 
   case MODE_STATS:
-  {
-    long int uptime=millis()/1000 + millis_overflow * 4294967296;
-
-    display.println("  STATS ");
-    // up time since power on
-    if ( uptime / 86400 >= 1 ) {
-      display.print(uptime/86400);
-      display.print("J ");
-      //display.print(uptime%86400/3600);
-      //display.println("h");
-    } else if ( uptime / 3600 >= 1 ) {
-      display.print(uptime/3600);
-      display.print("h ");
-      //display.print((uptime%3600)/60);
-      //display.println("mn");
-    } else if ( uptime / 60 >= 1 ) {
-      display.print(uptime/60);
-      display.print("mn ");
-      //display.print(uptime%60);
-      //display.println("s");
-    } else {
-      display.print(uptime%60);
-      display.print("s");
-    }
-  }
-    display.print(" ");
-    display.println(millis_overflow);
-    display.print(" ");
+    display.println("  STATS");
+    affiche_date(1);
+    display.println("");
     display.print(stat_cycle_total);
     display.print(" ");
     display.print(stat_chauffe_total);
-    affiche_error(" ");
 
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
@@ -684,8 +743,8 @@ void loop() {
     if (version_display > 0) version_display--;
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("18-Nov-26");
-    display.println("  0.13");
+    display.println(VERSION_DATE);
+    display.println(VERSION_NB);
 
     if (BOK_st > 0 || version_display == 0) {
       restart_boiler(ETAT_REPOS);

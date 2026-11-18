@@ -1,4 +1,6 @@
 
+#define VERSION_DATE   "18-Nov-26"
+#define VERSION_NB     "0.13"
 
 /********************************************************
  * Constantes
@@ -86,6 +88,9 @@
 #define MODE_ERREUR    6
 #define MODE_POWER_ON  7
 #define MODE_SECU      8
+
+#define BOILER_SCREEN_DEFAULT 0
+#define BOILER_SCREEN_DEBUG   1
 
 #define VERSION_TEMPO  3
 
