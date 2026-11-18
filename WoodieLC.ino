@@ -123,6 +123,12 @@ void restart_boiler(u8 e) {
     temperature_error_eau_total = 0;
     temperature_error_vis_total = 0;
     temperature_error_same_total = 0;
+    sonde_error_0 = 0;
+    sonde_error_0_total = 0;
+    sonde_error_1 = 0;
+    sonde_error_1_total = 0;
+    sonde_error_X = 0;
+    sonde_error_X_total = 0;
 }
 
 // CORRECTION : type de retour void (les fonctions int sans return sont un comportement indefini)
@@ -132,18 +138,32 @@ void affiche_reglage(const char * message, int valeur){
   display.print(valeur);
 }
 
-void affiche_error(const char * erreur){
-  display.print(erreur);
+void affiche_secu(const char * secu){
+  display.print(secu);
   display.print(" ");
   display.print(memorise_temperature_eau, DEC);
   display.print(" ");
   display.print(memorise_temperature_vis, DEC);
+  display.print(" ");
+  display.print(temperature_error_eau_total + temperature_error_vis_total + temperature_error_same_total, DEC);
+  display.print(" ");
+  display.print(sonde_error_0_total + sonde_error_1_total + sonde_error_X_total, DEC);
+}
+
+void affiche_error(const char * erreur){
+  display.print(erreur);
   display.print(" ");
   display.print(temperature_error_eau_total, DEC);
   display.print(" ");
   display.print(temperature_error_vis_total, DEC);
   display.print(" ");
   display.print(temperature_error_same_total, DEC);
+  display.print(" ");
+  display.print(sonde_error_0_total, DEC);
+  display.print(" ");
+  display.print(sonde_error_1_total, DEC);
+  display.print(" ");
+  display.print(sonde_error_X_total, DEC);
 }
 
 // CORRECTION : affiche_Chaudiere et affiche_arret supprimees (code mort jamais appele)
@@ -245,6 +265,8 @@ void loop() {
   t_loop_debut = millis();
   
   display.clearDisplay();
+  
+  display.setTextSize(2);      // Normal 1:1 pixel scale
   display.setCursor(0, 0);     // Start at top-left corner
 
   digitalWrite(LED_BUILTIN, 1);
@@ -264,8 +286,10 @@ void loop() {
   if ( probe_nb == 0 ) {
     mode = MODE_ERREUR;
     error = ERROR_0_PROBE;
-    temperature_eau = -1;
-    temperature_vis = -1;
+    sonde_error_0++;
+    if ( sonde_error_0_total < 255 ) sonde_error_0_total++;
+    temperature_eau = -127;
+    temperature_vis = -127;
   } else {
     // CORRECTION : conversion demandee aussi en cas d'anomalie sonde,
     // sinon getTempCByIndex() relit un scratchpad perime
@@ -274,18 +298,17 @@ void loop() {
     if ( probe_nb == 1 ) {
       mode = MODE_ERREUR;
       error = ERROR_1_PROBE;
-      temperature_eau = (int)sensors.getTempCByIndex(0);
-      temperature_vis = -1;
+      sonde_error_1++;
+      if ( sonde_error_1_total < 255 ) sonde_error_1_total++;
+      temperature_eau = -127;
+      temperature_vis = -127;
     } else if ( probe_nb > 2 ) {
       mode = MODE_ERREUR;
       error = ERROR_X_PROBE;
-      if ( probe_select == 1 ) {
-        temperature_eau = (int)sensors.getTempCByIndex(0);
-        temperature_vis = (int)sensors.getTempCByIndex(1);
-      } else {
-        temperature_eau = (int)sensors.getTempCByIndex(1);
-        temperature_vis = (int)sensors.getTempCByIndex(0);
-      }
+      sonde_error_X++;
+      if ( sonde_error_X_total < 255 ) sonde_error_X_total++;
+      temperature_eau = -127;
+      temperature_vis = -127;
     }
     else {
       if ( probe_select == 1 ) {
@@ -298,19 +321,33 @@ void loop() {
     }
   }
   
+  // Check temperature probe errors threshold
+  if ( sonde_error_0 >= PROBE_ERROR_MAX ) {
+    mode = MODE_ERREUR;
+    error = ERROR_0_PROBE;
+  }
+  if ( sonde_error_1 >= PROBE_ERROR_MAX ) {
+    mode = MODE_ERREUR;
+    error = ERROR_1_PROBE;
+  }
+  if ( sonde_error_X >= PROBE_ERROR_MAX ) {
+    mode = MODE_ERREUR;
+    error = ERROR_X_PROBE;
+  }
+
   // Robustify temperature read
   if ( temperature_eau == -127 ) {
     temperature_error_eau++;
-    temperature_error_eau_total++;
+    if ( temperature_error_eau_total < 255 ) temperature_error_eau_total++;
   }
   if ( temperature_vis == -127 ) {
     temperature_error_vis++;
-    temperature_error_vis_total++;
+    if ( temperature_error_vis_total < 255 ) temperature_error_vis_total++;
   }
   else if ( temperature_vis == temperature_eau ) {
     // Should not occurs, don't take it in account
     temperature_error_same++;
-    temperature_error_same_total++;
+    if ( temperature_error_same_total < 255 ) temperature_error_same_total++;
     temperature_vis = -127;  // Force la valeur à -1 au lieu de garder l'ancienne
   }
 
@@ -319,6 +356,9 @@ void loop() {
     if ( temperature_error_eau > 1) temperature_error_eau--;
     if ( temperature_error_vis > 1) temperature_error_vis--;
     if ( temperature_error_same > 1) temperature_error_same--;
+    if ( sonde_error_0 > 1) sonde_error_0--;
+    if ( sonde_error_1 > 1) sonde_error_1--;
+    if ( sonde_error_X > 1) sonde_error_X--;
     Compteur_secondes = 0;
   }
 
@@ -345,23 +385,20 @@ void loop() {
 
     // Security check
     if ( temperature_vis > -20 && temperature_vis >= temperature_vis_max ) {
-        mode = MODE_ERREUR;
+        mode = MODE_SECU;
         error = ERROR_TEMP_VIS;
-        etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
       }
     if ( temperature_eau > -20 && temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
-        mode = MODE_ERREUR;
+        mode = MODE_SECU;
         error = ERROR_TEMP_SECU;
-        etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
       }
-    if ( temperature_error_eau + temperature_error_vis + temperature_error_same >= 15) {
+    if ( temperature_error_eau + temperature_error_vis + temperature_error_same >= PROBE_READ_FAIL_MAX) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_ERROR;
-        etat = ETAT_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
       }
@@ -423,10 +460,6 @@ void loop() {
       affiche_error("");
     break;
 
-    case ETAT_SECU:
-      Ventilo.arret();
-      MoteurVis.arret();
-      display.println("  SECU ");
     default:
     break;
     }
@@ -435,7 +468,32 @@ void loop() {
     //if ( stat_repos != 0) display.print(stat_repos, DEC);
   
   break;
-  
+
+  case MODE_SECU:
+    Ventilo.arret();
+    MoteurVis.arret();
+    display.println(" SECURITE");
+    switch ( error ) {
+      case ERROR_TEMP_SECU:
+        //display.print("Te ");
+        affiche_secu("Te");
+        break;
+      case ERROR_TEMP_VIS:
+        //display.print("Tv ");
+        affiche_secu("Tv");
+        break;
+      default:
+        display.println("Inconnue");
+    }
+    display.print(" ");
+    display.print(tic++);
+
+    if (BOK_st > 0 ) {
+      if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
+      else restart_boiler(ETAT_REPOS);
+    }
+  break;
+
   case MODE_ERREUR:
     Ventilo.arret();
     MoteurVis.arret();
@@ -457,14 +515,6 @@ void loop() {
         //display.println("Moteur");
         affiche_error("M");
         break;
-      case ERROR_TEMP_SECU:
-        //display.print("Te ");
-        affiche_error("Te");
-        break;
-      case ERROR_TEMP_VIS:
-        //display.print("Tv ");
-        affiche_error("Tv");
-        break;
       case ERROR_TEMP_ERROR:
         //display.print("Tr ");
         affiche_error("Tr");
@@ -472,7 +522,8 @@ void loop() {
       default:
         display.println("Inconnue");
     }
-    display.print(tic);
+    display.print(" ");
+    display.print(tic++);
     
     if (BOK_st > 0 ) {
       if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
@@ -625,7 +676,7 @@ void loop() {
     if (version_display > 0) version_display--;
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("14-Nov-26");
+    display.println("15-Nov-26");
     display.println("  0.12");
 
     if (BOK_st > 0 || version_display == 0) {

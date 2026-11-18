@@ -48,6 +48,9 @@
 
 #define PROBE_SELECT_MIN            1
 #define PROBE_SELECT_MAX            2
+#define PROBE_ERROR_MAX             5
+#define PROBE_READ_FAIL_MAX         10
+
 
 // EEPROM storage address
 #define EEPROM_TEMPERATURE_DEMARRAGE   0
@@ -73,7 +76,6 @@
 #define ETAT_REPOS         0
 #define ETAT_CHAUFFE       1
 #define ETAT_FORCE_CHAUFFE 2   // Run even if water temperature too low (needed to 're)start boiler
-#define ETAT_SECU          3   // Do nothing if security problem
  
 // Boiler mode
 #define MODE_ON        1
@@ -83,6 +85,7 @@
 #define MODE_VERSION   5
 #define MODE_ERREUR    6
 #define MODE_POWER_ON  7
+#define MODE_SECU      8
 
 #define VERSION_TEMPO  3
 

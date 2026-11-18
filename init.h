@@ -13,12 +13,18 @@
 
 int temperature_eau = -127;
 int temperature_vis = -127;
-int temperature_error_eau = 0;
-int temperature_error_eau_total = 0;
-int temperature_error_vis = 0;
-int temperature_error_vis_total = 0;
-int temperature_error_same = 0;
-int temperature_error_same_total = 0;
+u8 temperature_error_eau = 0;
+u8 temperature_error_eau_total = 0;
+u8 temperature_error_vis = 0;
+u8 temperature_error_vis_total = 0;
+u8 temperature_error_same = 0;
+u8 temperature_error_same_total = 0;
+u8 sonde_error_0 = 0;
+u8 sonde_error_0_total = 0;
+u8 sonde_error_1 = 0;
+u8 sonde_error_1_total = 0;
+u8 sonde_error_X = 0;
+u8 sonde_error_X_total = 0;
 //long temperature_K   = -300;  // Temperature output variable
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
