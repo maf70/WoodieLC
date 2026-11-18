@@ -262,7 +262,12 @@ void setup() {
 
 
 void loop() {
-  t_loop_debut = millis();
+  // Detection du rollover de millis() : horloge qui repart a zero ~49,7j
+  unsigned long millis_now = millis();
+  if (millis_now < millis_last) millis_overflow++;
+  millis_last = millis_now;
+
+  t_loop_debut = millis_now;
   
   display.clearDisplay();
   
@@ -638,30 +643,33 @@ void loop() {
 
   case MODE_STATS:
   {
-    long int uptime=millis()/1000;
+    long int uptime=millis()/1000 + millis_overflow * 4294967296;
 
     display.println("  STATS ");
     // up time since power on
     if ( uptime / 86400 >= 1 ) {
       display.print(uptime/86400);
       display.print("J ");
-      display.print(uptime%86400/3600);
-      display.println("h");
+      //display.print(uptime%86400/3600);
+      //display.println("h");
     } else if ( uptime / 3600 >= 1 ) {
       display.print(uptime/3600);
       display.print("h ");
-      display.print((uptime%3600)/60);
-      display.println("mn");
+      //display.print((uptime%3600)/60);
+      //display.println("mn");
     } else if ( uptime / 60 >= 1 ) {
       display.print(uptime/60);
       display.print("mn ");
-      display.print(uptime%60);
-      display.println("s");
+      //display.print(uptime%60);
+      //display.println("s");
     } else {
       display.print(uptime%60);
-      display.println("s");
+      display.print("s");
     }
   }
+    display.print(" ");
+    display.println(millis_overflow);
+    display.print(" ");
     display.print(stat_cycle_total);
     display.print(" ");
     display.print(stat_chauffe_total);
@@ -676,8 +684,8 @@ void loop() {
     if (version_display > 0) version_display--;
   case MODE_VERSION:
     display.println(" VERSION");
-    display.println("15-Nov-26");
-    display.println("  0.12");
+    display.println("18-Nov-26");
+    display.println("  0.13");
 
     if (BOK_st > 0 || version_display == 0) {
       restart_boiler(ETAT_REPOS);

@@ -56,3 +56,7 @@ DallasTemperature sensors(&oneWire);
 unsigned long t_loop_debut = 0;
 unsigned long t_loop_fin = 0;
 unsigned long t_loop_delai = 0;
+
+// Compteur de debordements de millis() (rollover tous les ~49,7 jours)
+unsigned long millis_last = 0;
+u8 millis_overflow = 0;
