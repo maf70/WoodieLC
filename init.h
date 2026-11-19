@@ -82,6 +82,7 @@ u8 millis_overflow = 0;
 // interruption interruptC1() management
 volatile int OpticCount = 0;
 volatile unsigned long OpticStamp = 0;
+int optic_seconde;
 
 moteur MoteurVis(RELAIS_MOTEUR, RELAIS_MOTEUR_INV);
 actionneur Ventilo(RELAIS_VENTILO);

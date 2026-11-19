@@ -99,7 +99,26 @@ void restart_boiler(u8 e) {
     sonde_error_X_total = 0;
 }
 
-// CORRECTION : type de retour void (les fonctions int sans return sont un comportement indefini)
+ 
+void affiche_header(void){ 
+  //if (temperature_eau < -20) {
+    display.print(temperature_eau, DEC);
+  //} else {
+  //  display.print("#");
+  //}
+  display.print(F(" "));
+  //display.println(temperature_K);
+  display.print(optic_seconde, DEC);
+  display.print(F(" "));
+  display.print(blocage, DEC);
+  display.print(F(" "));
+  //if (temperature_vis < -20) {
+    display.println(temperature_vis, DEC);
+  //} else {
+   // display.println("#");
+  //}
+}
+
 void affiche_reglage(const char * message, int valeur){
   display.print(message);
   display.println(": ");
@@ -196,8 +215,19 @@ void affiche_boiler(const u8 etat, const u8 screen){
 
 }
 
-void affiche_secu(const char * secu){
-  display.print(secu);
+void affiche_secu(const u8 secu){
+
+  display.println(" SECURITE");
+  switch ( secu ) {
+    case ERROR_TEMP_SECU:
+      display.print("Te");
+      break;
+    case ERROR_TEMP_VIS:
+      display.print("Tv");
+      break;
+    default:
+      display.print("S?");
+  }
   display.print(" ");
   display.print(memorise_temperature_eau, DEC);
   display.print(" ");
@@ -206,10 +236,32 @@ void affiche_secu(const char * secu){
   display.print(temperature_error_eau_total + temperature_error_vis_total + temperature_error_same_total, DEC);
   display.print(" ");
   display.print(sonde_error_0_total + sonde_error_1_total + sonde_error_X_total, DEC);
+  display.print(" ");
+  display.print(tic++);
 }
 
-void affiche_error(const char * erreur){
-  display.print(erreur);
+void affiche_error(const u8 erreur){
+
+  display.println(" ERREUR ");
+  switch ( erreur ) {
+    case ERROR_1_PROBE:
+      display.print("1T");
+      break;
+    case ERROR_0_PROBE:
+      display.print("0T");
+      break;
+    case ERROR_X_PROBE:
+      display.print("xT");
+      break;
+    case ERROR_VIS:
+      display.print("M");
+      break;
+    case ERROR_TEMP_ERROR:
+      display.print("Tr");
+      break;
+    default:
+      display.print("E?");
+  }
   display.print(" ");
   display.print(temperature_error_eau_total, DEC);
   display.print(" ");
@@ -222,9 +274,35 @@ void affiche_error(const char * erreur){
   display.print(sonde_error_1_total, DEC);
   display.print(" ");
   display.print(sonde_error_X_total, DEC);
+  display.print(" ");
+  display.print(tic++);
 }
 
-// CORRECTION : affiche_Chaudiere et affiche_arret supprimees (code mort jamais appele)
+
+void affiche_version(void){
+  display.println(" VERSION");
+  display.println(VERSION_DATE);
+  display.println(VERSION_NB);
+}
+
+void affiche_stop(void){
+  display.println("  ARRET ");
+  display.println("INV VENTIL");
+  display.println("VIS  REGL.");
+}
+
+void affiche_stats(void){
+  display.println("  STATS");
+  affiche_date(1);
+  display.println("");
+  display.print(stat_cycle_total);
+  display.print(" ");
+  display.print(stat_chauffe_total);
+}
+
+void affiche_reglage(void){
+    display.println(" REGLAGE");
+}
 
 void exit_reglage(void){
     mode = MODE_STATS;
@@ -337,7 +415,6 @@ void loop() {
   // CORRECTION : lecture atomique du compteur optique.
   // OpticCount (int 16 bits) est modifie par l'interruption : on copie
   // et on remet a zero interruptions coupees, puis on travaille sur la copie.
-  int optic_seconde;
   noInterrupts();
   optic_seconde = OpticCount;
   OpticCount = 0;
@@ -431,20 +508,12 @@ void loop() {
   //temperature_K = (int)temp.read_temp();
   //mesure_timings("max6675 lue : ");
   
-  // Not all the characters will fit on the display. This is normal.
-  // Library will draw what it can and the rest will be clipped.
-  
-  display.print(temperature_eau, DEC);
-  display.print(F(" "));
-  //display.println(temperature_K);
-  display.print(optic_seconde, DEC);
-  display.print(F(" "));
-  display.print(blocage, DEC);
-  display.print(F(" "));
-  display.println(temperature_vis, DEC);
+  // Display header whatever the boiler mode
+  affiche_header();
 
   switch( mode ) {
   case MODE_ON:
+    // Action
 
     // Security check
     if ( temperature_vis > -20 && temperature_vis >= temperature_vis_max ) {
@@ -518,32 +587,24 @@ void loop() {
     break;
     }
 
+    // Display
+    affiche_boiler(etat, boiler_screen);
+
+    // Button management
     if (BUP_st > 0 ) { boiler_screen = BOILER_SCREEN_DEFAULT ; }
     else if (BDOWN_st > 0 ) { boiler_screen = BOILER_SCREEN_DEBUG ; };
-
-    affiche_boiler(etat, boiler_screen);
   
   break;
 
   case MODE_SECU:
+    // Action
     Ventilo.arret();
     MoteurVis.arret();
-    display.println(" SECURITE");
-    switch ( error ) {
-      case ERROR_TEMP_SECU:
-        //display.print("Te ");
-        affiche_secu("Te");
-        break;
-      case ERROR_TEMP_VIS:
-        //display.print("Tv ");
-        affiche_secu("Tv");
-        break;
-      default:
-        display.println("Inconnue");
-    }
-    display.print(" ");
-    display.print(tic++);
 
+    // Display
+    affiche_secu(error);
+
+    // Button management
     if (BOK_st > 0 ) {
       if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
       else restart_boiler(ETAT_REPOS);
@@ -551,36 +612,14 @@ void loop() {
   break;
 
   case MODE_ERREUR:
+    // Action
     Ventilo.arret();
     MoteurVis.arret();
-    display.println(" ERREUR ");
-    switch ( error ) {
-      case ERROR_1_PROBE:
-        //display.println("1 Sonde T");
-        affiche_error("1T");
-        break;
-      case ERROR_0_PROBE:
-        //display.println("0 Sonde T");
-        affiche_error("0T");
-        break;
-      case ERROR_X_PROBE:
-        //display.println("X Sonde T");
-        affiche_error("xT");
-        break;
-      case ERROR_VIS:
-        //display.println("Moteur");
-        affiche_error("M");
-        break;
-      case ERROR_TEMP_ERROR:
-        //display.print("Tr ");
-        affiche_error("Tr");
-        break;
-      default:
-        display.println("Inconnue");
-    }
-    display.print(" ");
-    display.print(tic++);
+
+    // Display
+    affiche_error(error);
     
+    // Button management
     if (BOK_st > 0 ) {
       if (ERROR_TEMP_SECU == error) restart_boiler(ETAT_FORCE_CHAUFFE);
       else restart_boiler(ETAT_REPOS);
@@ -588,10 +627,12 @@ void loop() {
   break;
   
   case MODE_STOP:
-    display.println("  ARRET ");
-    display.println("INV VENTIL");
-    display.println("VIS  REGL.");
-    
+    // Action
+
+    // Display
+    affiche_stop();
+
+    // Button management
     if (BDOWN_st > 0 ) {
       MoteurVis.debloque();
       MoteurVis.demarre(tempo_moteur, 1);
@@ -601,17 +642,20 @@ void loop() {
     } else if (BOK_st > 0 ) {
       Ventilo.demarre(tempo_ventilo);
     }
-
     Ventilo.tic(1);
     MoteurVis.tic(1, optic_seconde);
 
   break;
   
   case MODE_REGLAGE:
-    display.println(" REGLAGE");
+    // Action
     Ventilo.arret();
     MoteurVis.arret();
 
+    // Display
+    affiche_reglage();
+
+    // Button management
     switch ( reglage ) {
       case REGLAGE_INIT:
         reglage = REGLAGE_TEMP_START;
@@ -693,13 +737,12 @@ void loop() {
   break;
 
   case MODE_STATS:
-    display.println("  STATS");
-    affiche_date(1);
-    display.println("");
-    display.print(stat_cycle_total);
-    display.print(" ");
-    display.print(stat_chauffe_total);
+    // Action
 
+    // Display
+    affiche_stats();
+
+    // Button management
     if (BOK_st > 0 ) {
       restart_boiler(ETAT_REPOS);
     }
@@ -708,18 +751,20 @@ void loop() {
   case MODE_POWER_ON:
     if (version_display > 0) version_display--;
   case MODE_VERSION:
-    display.println(" VERSION");
-    display.println(VERSION_DATE);
-    display.println(VERSION_NB);
+    // Action
 
+    // Display
+    affiche_version();
+
+    // Button management
     if (BOK_st > 0 || version_display == 0) {
       restart_boiler(ETAT_REPOS);
     }
   break;
 
   }
-//  display.println(total_s++);
   
+    // Button MENU management
   if (BMENU_st > 0 ) {
     switch( mode ) {
     case MODE_ON:
@@ -746,8 +791,8 @@ void loop() {
 
   clear_button();
   
- // mesure_timings("Gestion chaudiere : ");
-  //mesure_timings("lcd refresh : ");
+  // mesure_timings("Gestion chaudiere : ");
+  // mesure_timings("lcd refresh : ");
 
   display.display();
 
