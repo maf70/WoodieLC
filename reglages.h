@@ -1,6 +1,6 @@
 
-#define VERSION_DATE   "18-Nov-26"
-#define VERSION_NB     "0.13"
+#define VERSION_DATE   "19-Nov-26"
+#define VERSION_NB     "0.14"
 
 /********************************************************
  * Constantes

@@ -3,30 +3,6 @@
 
 #include <EEPROM.h>
 
-u8 temperature_demarrage = TEMPERATURE_DEMARRAGE;
-u8 temperature_arret     = TEMPERATURE_ARRET;
-
-uint16_t tempo_cycle   = TEMPO_CYCLE;
-uint16_t tempo_ventilo = TEMPO_VENTILO;
-u8 tempo_moteur  = TEMPO_MOTEUR;
-
-u8 moteur_delai_inversion = MOTEUR_DELAI_INVERSION;
-u8 moteur_duree_inversion = MOTEUR_DUREE_INVERSION;
-u8 moteur_vitesse_min     = MOTEUR_VITESSE_MIN;
-u8 moteur_blocage_max     = MOTEUR_BLOCAGE_MAX;
-
-u8 temperature_secu = TEMP_SECU;
-u8 temperature_vis_max =  TEMP_VIS;
-// CORRECTION : int au lieu de u8, pour memoriser correctement -1
-int memorise_temperature_eau = 0;
-int memorise_temperature_vis = 0;
-u8 probe_select =  PROBE_SELECT;
-u8 probe_nb     =  0;
-u8 error        =  0;
-u8 Compteur_secondes       =  0;
-u8 version_display =  VERSION_TEMPO;
-u8 boiler_screen   =  BOILER_SCREEN_DEFAULT;
-
 // CORRECTION : volatile car ecrits dans l'ISR du Timer2, lus dans loop()
 volatile u8 B_disable = 0;
 
@@ -95,16 +71,6 @@ void clear_button(void) {
       BDOWN_st = 0;
   
 }
-
-u8 blocage = 0;
-int nb_cycle = 0;
-int stat_cycle = 0;
-int stat_repos = 0;
-int stat_cycle_total = 0;
-int stat_chauffe_total = 0;
-u8 reglage = REGLAGE_NONE;
-int tmp_reglage  = -1;
-u8 reglage_next = 0;
 
 void restart_boiler(u8 e) {
     // restart boiler !
