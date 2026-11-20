@@ -9,7 +9,7 @@ extern "C" {
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 
-#include "reglages.h"
+#include "config.h"
 #include "affichage.h"
 
 void affiche_header(void){

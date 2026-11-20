@@ -6,7 +6,7 @@ extern "C" {
 }
 #endif
 
-#include "reglages.h"
+#include "config.h"
 #include "moteur.h"
 
 actionneur::actionneur(int p){
