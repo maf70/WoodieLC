@@ -95,7 +95,7 @@
 #define VERSION_TEMPO  3
 
 #define BUTTON_VALID   1
-#define BUTTON_DISABLE 20
+#define BUTTON_DISABLE 4     // ticks ISR (~65ms) de blocage apres un appui valide
 
 // Setting state
 #define REGLAGE_NONE          0
