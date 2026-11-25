@@ -49,11 +49,18 @@ void lire_tous_reglages(void);
 
 // Gestion des boutons sur un parametre du menu reglage
 // (remplace les macros SET_PARAM + SET_NEXT_REGLAGE)
+//
+// REPETITION : la boucle tourne exactement 1x/seconde. En plus du drapeau
+// pose par l'ISR (appui initial), on lit directement la broche : une touche
+// UP/DOWN maintenue compte donc 1 increment par tour de boucle, soit
+// ~1x/seconde, sans depends d'aucune synchronisation d'horloges.
 template<class T>
 void gerer_param(T& value, const char* message, int pmin, int pmax,
                  int valeur_suivante, u8 etat_suivant) {
-  if      (BUP_st   > 0 ) { tmp_reglage++; }
-  else if (BDOWN_st > 0 ) { tmp_reglage--; }
+  u8 up   = (BUP_st   > 0) || (digitalRead(B_UP)   == LOW);
+  u8 down = (BDOWN_st > 0) || (digitalRead(B_DOWN) == LOW);
+  if      (up   > 0 ) { tmp_reglage++; }
+  else if (down > 0 ) { tmp_reglage--; }
   else if (BOK_st   > 0 ) { value = (T)tmp_reglage; reglage_next = 1; }
   else if (BMENU_st > 0 ) { mode = MODE_STATS; }
   if      (pmin > tmp_reglage) { tmp_reglage = pmin; }
