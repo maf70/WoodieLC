@@ -13,22 +13,17 @@ extern "C" {
 #include "affichage.h"
 
 void affiche_header(void){
-  //if (temperature_eau < -20) {
-    display.print(temperature_eau, DEC);
-  //} else {
-  //  display.print("#");
-  //}
+  // Sonde en defaut (-127) : affiche ## au lieu de la valeur crue
+  if (temperature_eau < -20) display.print(F("# "));
+  else                       display.print(temperature_eau, DEC);
   display.print(F(" "));
   //display.println(temperature_K);
   display.print(optic_seconde, DEC);
   display.print(F(" "));
   display.print(blocage, DEC);
   display.print(F(" "));
-  //if (temperature_vis < -20) {
-    display.println(temperature_vis, DEC);
-  //} else {
-   // display.println("#");
-  //}
+  if (temperature_vis < -20) display.println(F("# "));
+  else                       display.println(temperature_vis, DEC);
 }
 
 void affiche_reglage(const char * message, int valeur){
