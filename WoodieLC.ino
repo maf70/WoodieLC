@@ -385,6 +385,7 @@ void loop() {
     switch( mode ) {
     case MODE_ON:
     case MODE_ERREUR:
+    case MODE_SECU:
       mode = MODE_STOP;
       Ventilo.arret();
       MoteurVis.arret();
