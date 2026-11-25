@@ -212,18 +212,21 @@ void loop() {
         error = ERROR_TEMP_VIS;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
+        etat = ETAT_STOP;
       }
     if ( temperature_eau > -20 && temperature_eau <= temperature_secu && etat != ETAT_FORCE_CHAUFFE) {
         mode = MODE_SECU;
         error = ERROR_TEMP_SECU;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
+        etat = ETAT_STOP;
       }
     if ( temperature_error_eau + temperature_error_vis + temperature_error_same >= PROBE_READ_FAIL_MAX) {
         mode = MODE_ERREUR;
         error = ERROR_TEMP_ERROR;
         memorise_temperature_vis = temperature_vis;
         memorise_temperature_eau = temperature_eau;
+        etat = ETAT_STOP;
       }
   
     switch( etat ) {

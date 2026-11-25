@@ -1,6 +1,6 @@
 
-#define VERSION_DATE   "20-Nov-26"
-#define VERSION_NB     "0.15"
+#define VERSION_DATE   "25-Nov-26"
+#define VERSION_NB     "1.00"
 
 /********************************************************
  * Constantes
@@ -78,6 +78,7 @@
 #define ETAT_REPOS         0
 #define ETAT_CHAUFFE       1
 #define ETAT_FORCE_CHAUFFE 2   // Run even if water temperature too low (needed to 're)start boiler
+#define ETAT_STOP          3   // Avoid start if security mode detected
  
 // Boiler mode
 #define MODE_ON        1

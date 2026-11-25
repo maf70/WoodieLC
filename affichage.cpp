@@ -82,6 +82,9 @@ void affiche_boiler(const u8 etat, const u8 screen){
     case ETAT_CHAUFFE:
       display.println(" CHAUFFE");
     break;;
+    case ETAT_STOP:
+      display.println("  STOP");
+    break;;
     default:
       display.println("  UNDEF");
   }
